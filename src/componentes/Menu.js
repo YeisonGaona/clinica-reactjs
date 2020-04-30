@@ -18,6 +18,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import LocalHospitalIcon from '@material-ui/icons/LocalHospital';
 import BallotIcon from '@material-ui/icons/Ballot';
 import Paper from '@material-ui/core/Paper';
+import PersonPinIcon from '@material-ui/icons/PersonPin';
 
 const drawerWidth = 240;
 
@@ -96,7 +97,11 @@ export default function PersistentDrawerLeft({ children, ...rest }) {
     }
 
     const handleClickDos=()=> {
-        window.location.href = "/detalle";
+        window.location.href = "/examenes";
+    }
+
+    const handleClickTres=()=> {
+        window.location.href = "/medicos";
     }
 
     return (
@@ -150,7 +155,13 @@ export default function PersistentDrawerLeft({ children, ...rest }) {
                         <ListItemIcon>
                             <BallotIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Detalle consulta" />
+                        <ListItemText primary="Examenes" />
+                    </ListItem>
+                    <ListItem button onClick={handleClickTres}> 
+                        <ListItemIcon>
+                            <PersonPinIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Medicos" />
                     </ListItem>
                 </List>
             </Drawer>

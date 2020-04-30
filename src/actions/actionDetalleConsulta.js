@@ -2,13 +2,57 @@ import axios from 'axios';
 
 export const MENSAJE_REGISTRAR = 'MENSAJE_REGISTRAR';
 export const GET_DETALLE = 'GET_DETALLE';
+export const GET_DETALLE_EXAMEN= 'GET_DETALLE_EXAMEN';
 export const AGREGAR_DETALLE = 'AGREGAR_DETALLE';
+export const AGREGAR_DETALLE_REGISTRO='AGREGAR_DETALLE_REGISTRO';
+export const BORRAR_DETALLE='BORRAR_DETALLE';
+export const ASIGNAR_DETALLE_CONSULTA='ASIGNAR_DETALLE_CONSULTA';
+export const DETALLE_EDITAR='DETALLE_EDITAR';
 
 export function actionMensajeRegistrar(mensaje) {
     return (dispatch, getState) => {
         dispatch({
             type: MENSAJE_REGISTRAR,
             mensaje: mensaje
+        });
+    }
+}
+
+
+export function asignarDetalleConsultaEditar(detalle) {
+    return (dispatch, getState) => {
+        dispatch({
+            type: DETALLE_EDITAR,
+            detalle
+        });
+    }
+}
+
+
+export function detalleConsultaAgregar(detalleConsulta) {
+    return (dispatch, getState) => {
+        dispatch({
+            type: AGREGAR_DETALLE_REGISTRO,
+            detalleConsulta
+        });
+    }
+}
+
+export function detalleConsultaAsignar(detalles) {
+    return (dispatch, getState) => {
+        dispatch({
+            type: ASIGNAR_DETALLE_CONSULTA,
+            detalles
+        });
+    }
+}
+
+
+export function borrarDetalle(idDetalle) {
+    return (dispatch, getState) => {
+        dispatch({
+            type: BORRAR_DETALLE,
+            idDetalle
         });
     }
 }
@@ -39,6 +83,33 @@ export function actionGet() {
     };
 }
 
+export function actionGetDetallesConExamenes(idConsulta) {
+    return (dispatch, getState) => {
+        axios.get(`http://localhost:8081/consultaexamenes/listarPorIdConsulta/${idConsulta}`)
+            .then(response => {
+                dispatch({
+                    type: GET_DETALLE_EXAMEN,
+                    detalleExamen: response.data
+                });
+            }).catch((error) => {
+                if (error.request.response === '') {
+                    dispatch({
+                        type: MENSAJE_REGISTRAR,
+                        mensaje: 'Servidor fuera de servicio temporalmente'
+                    });
+                } else {
+                    if (error.request) {
+                        dispatch({
+                            type: MENSAJE_REGISTRAR,
+                            mensaje: 'Servidor fuera de servicio temporalmente'
+                        });
+                    }
+                }
+            });
+    };
+}
+
+
 
 export function actionAgregarConsulta(consulta) {
     const headers = {
@@ -49,7 +120,7 @@ export function actionAgregarConsulta(consulta) {
             .then(response => { 
                 dispatch({
                     type: MENSAJE_REGISTRAR,
-                    mensaje: 'Consulta registrada'
+                    mensaje: 'Detalle de consulta registrado'
                 });
                 dispatch({
                     type: AGREGAR_DETALLE,
@@ -81,7 +152,7 @@ export function actionEditarConsulta(consulta) {
             .then(response => {
                 dispatch({
                     type: MENSAJE_REGISTRAR,
-                    mensaje: 'Consulta editada'
+                    mensaje: 'Detalle consulta editada'
                 });
             }).catch((error) => {
                 if (error.request.status === 400) {
@@ -108,7 +179,7 @@ export function actionEliminarConsulta(id) {
             .then(response => {
                 dispatch({
                     type: MENSAJE_REGISTRAR,
-                    mensaje: 'Consulta eliminada'
+                    mensaje: 'Detalle consulta eliminada'
                 });
             }).catch((error) => {
                 if (error.request.response === '') {

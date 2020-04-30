@@ -29,6 +29,25 @@ export const validacionCuarentaCaracteres = value => {
 
 }
 
+export const validacionCientoCincuentaCaracteres = value => {
+    if (value !== undefined) {
+        if (value.length > 150) {
+            return 'El limite es de 150 caracteres';
+        }
+    }
+
+}
+
+export const validacionQuinceCaracteres = (value,cant) => {
+    if (value !== undefined) {
+        if (value.length > 15) {
+            return 'El limite es de 15 caracteres';
+        }
+    }
+
+}
+
+
 export const validacionVeintiCincoCaracteres = value => {
     if (value !== undefined) {
         if (value.length > 25) {

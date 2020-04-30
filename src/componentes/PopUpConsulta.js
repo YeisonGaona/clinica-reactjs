@@ -4,15 +4,28 @@ import Button from '@material-ui/core/Button';
 import { Modal, ModalHeader, ModalBody } from 'reactstrap';
 import { reduxForm, Field } from 'redux-form';
 import { withRouter } from 'react-router-dom';
-import { generarInput, generarDate } from '../utilitario/GenerarInput.js';
 import AddIcon from '@material-ui/icons/Add';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
-import CheckIcon from '@material-ui/icons/Check';
-import CancelIcon from '@material-ui/icons/Cancel';
-import { requerido, validacionCuarentaCaracteres,validacionVeintiCincoCaracteres,minimoTresCaracteres } from '../utilitario/ValidacionCampos.js';
+import Select from 'react-select';
+import { generarDate } from '../utilitario/GenerarInput.js';
+import { requerido, seleccione } from '../utilitario/ValidacionCampos.js';
 import { actionAgregarConsulta, actionMensajeRegistrar } from '../actions/actionConsulta.js';
+import { actionGet as actionMedicos } from '../actions/actionMedico.js';
+import { actionExamenRecuperar, actualizarExamenRegistrar,actionAsignarExamenRegistrar,actionGet } from '../actions/actionExamen.js';
+import { borrarDetalle,detalleConsultaAsignar } from '../actions/actionDetalleConsulta.js';
 import { connect } from 'react-redux';
-import MaterialTable from 'material-table';
+
+import ExamenForm from './ExamenForm.js';
+import DetalleConsultaForm from './DetalleConsultaForm.js';
+
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import Typography from '@material-ui/core/Typography';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import { Table, ButtonGroup } from 'react-bootstrap';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 class PopUpActividad extends React.Component {
     constructor(props) {
@@ -20,11 +33,29 @@ class PopUpActividad extends React.Component {
         this.state = {
             modal: false,
             habilitado: true,
+            examenes:true,
             detalles: []
         };
         this.toggle = this.toggle.bind(this);
         this.cambiar = this.cambiar.bind(this);
+        this.cambiarExamenes=this.cambiarExamenes.bind(this);
     }
+
+
+    opcionesMedicos = () => {
+        let respuesta = [];
+        this.props.medicos.forEach(
+            medico => {
+                let objeto = {
+                    label: medico.nombreMedico,
+                    value: medico.id,
+                }
+                respuesta.push(objeto);
+            }
+        )
+        return respuesta;
+    }
+
 
     toggle() {
         this.setState(prevState => ({
@@ -42,13 +73,18 @@ class PopUpActividad extends React.Component {
         }));
     }
 
-    componentWillMount() {
-        // this.props.actionConsultarModulos(localStorage.getItem('Token'));
+    cambiarExamenes() {
+        this.setState(prevState => ({
+            examenes: !prevState.examenes
+        }));
+    }
 
+    componentWillMount() {
+        this.props.actionMedicos();
+        this.props.actionGet();
     }
 
     componentDidUpdate() {
-        console.log('mensj', this.props.mensaje);
         switch (this.props.mensaje) {
             case 'Consulta registrada':
                 if (this.state.modal) {
@@ -60,124 +96,215 @@ class PopUpActividad extends React.Component {
                 break;
         }
         this.props.actionMensajeRegistrar('');
+    }
 
+    deleteBook = (bookId) => {
+        this.props.borrarDetalle(bookId);
+    };
+
+    deleteExamen = (examen) => {
+        this.props.actionExamenRecuperar(examen);
+        this.props.actualizarExamenRegistrar(examen);
+    };
+
+    formatoExamenes = (lista) => {
+        let examenesFormato = [];
+        for (var i = 0; i < lista.length; i++) {
+            let examenDto = {
+                'idExamen': lista[i].value,
+                'infoAdicional':lista[i].info
+            }
+            examenesFormato.push(examenDto);
+        }
+        return examenesFormato;
+    }
+
+    formatoDetalles = (lista) => {
+        let detallesFormato = [];
+        for (var i = 0; i < lista.length; i++) {
+            let detalleConsultaDto = {
+                'diagnostico': lista[i].diagnostico,
+                'tratamiento': lista[i].tratamiento
+            }
+            detallesFormato.push(detalleConsultaDto);
+        }
+        return detallesFormato;
     }
 
     handleSubmit = formValues => {
-        let consulta = {
-            'nombreMedico': formValues.nombreMedico,
-            'fecha': formValues.fecha,
-            'detalleConsulta': this.state.detalles
+        let consultaExamenReporteDto = {
+            'consulta': {
+                'medico': {
+                    'id': formValues.medico.value,
+                    'nombre': formValues.medico.label
+                },
+                'fecha': formValues.fecha,
+                'detalleConsultaDto': this.formatoDetalles(this.props.detallesConsulta)
+            },
+            'listaExamen': this.formatoExamenes(this.props.examenesRegistrar)
         }
-        this.props.actionAgregarConsulta(consulta);
-        this.setState({
-            detalles: []
-        })
-        this.props.reset();
-    }
-
-    handleSubmitConsulta = formValues => {
-        let detalle = {
-            'diagnostico': formValues.diagnostico,
-            'tratamiento': formValues.tratamiento
-        }
-        this.setState(prevState => ({
-            detalles: [...prevState.detalles, detalle]
-        }))
-        this.cambiar();
+        this.props.actionAgregarConsulta(consultaExamenReporteDto);
+        this.toggle();
+        this.props.actionAsignarExamenRegistrar([]);
+        this.props.detalleConsultaAsignar([]);
+        this.props.actionGet();
     }
 
     render() {
+        const { detallesConsulta, examenesRegistrar } = this.props;
+
         return (
             <div>
-                <Button style={{ background: '#001F54', color: 'white', fontSize: "14px", textTransform: "none" }} startIcon={<AddIcon />} className="btn btn-dark" variant="contained" onClick={this.toggle}>Registrar consulta</Button>
+                <Button style={{ background: '#001F54', color: 'white', fontSize: "14px", textTransform: "none" }} startIcon={<AddIcon />} className="btn btn-dark" variant="contained" onClick={this.toggle}>Agregar consulta</Button>
                 <Modal isOpen={this.state.modal}
                     toggle={this.toggle}
                     className={this.props.className}
-                    style={{ paddingTop: '120px' }}
+                    style={{ paddingTop: '42px' }}
                     size="col-md-4"
                 >
                     <ModalHeader toggle={this.toggle} className="center">Crear consulta</ModalHeader>
                     <ModalBody>
-                        <form onSubmit={this.props.handleSubmit(this.handleSubmit)}>
-                            <div className="row">
-                                <div className="col-sm-12">
-                                    <Field name="nombreMedico" validate={[requerido, validacionCuarentaCaracteres,minimoTresCaracteres]} component={generarInput} label="Nombre del medico" />
+                        <form onSubmit={this.props.handleSubmit(this.handleSubmit)} id='formularioPrin'>
+                            <div className="row" style={{ paddingTop: "9px" }}>
+                                <div className="col-sm-12" style={{ zIndex: '11' }}>
+                                    <Field name="medico" validate={[seleccione]} component={ReduxFormSelect} options={this.opcionesMedicos()} />
                                 </div>
                             </div>
                             <div className="row">
                                 <div className="col-sm-12">
-                                    <Field name="fecha" type='date' validate={[requerido]} component={generarDate} label="Fecha de consulta" />
-                                </div>
-                            </div>
-                            <div className="row" style={{ paddingLeft: '6px', paddingTop: '10px' }}>
-                                <div className="col-sm-10">
-                                    <label>Detalle de consulta </label>
-                                </div>
-                                <div className="col-sm-2" style={{ paddingLeft: '0px', paddingBottom: '11px' }}>
-                                    <Button style={{background: '#001F54', fontSize: "14px", fontFamily: "sans-serif",color:'white', textTransform: "none",borderRadius:'20%'}} className="btn btn-dark" variant="contained" onClick={this.cambiar} startIcon={<AddIcon />} ></Button>{''}
+                                    <Field name="fecha" type='date' min='2020-04-28' validate={[requerido]} component={generarDate} label="Fecha de consulta" />
                                 </div>
                             </div>
                             <div style={{ paddingLeft: '170px' }}>
-                                <Button style={{ background: '#001F54', fontSize: "14px", fontFamily: "sans-serif",color:'white', textTransform: "none" }} className="btn btn-dark" variant="contained" startIcon={<SaveAltIcon />} type="submit">Registrar</Button>{''}
+                                <Button style={{ background: '#001F54', fontSize: "14px", fontFamily: "sans-serif", color: 'white', textTransform: "none" }} className="btn btn-dark" variant="contained" startIcon={<SaveAltIcon />} type="submit">Registrar</Button>{''}
                             </div>
+                            <br/>
                         </form>
-                        {this.state.habilitado ? <></> :
+                        {this.state.examenes ? <>
+                            <div className="row" style={{ paddingLeft: '0px', paddingTop: '10px', paddingBottom: '23px' }}>
+                                <div className="col-sm-12">
+                                    <Button
+                                        onClick={this.cambiarExamenes}
+                                        variant="contained"
+                                        color="secondary"
+                                        startIcon={<AddIcon />}
+                                        style={{ background: '#001F54', fontSize: "13px", fontFamily: "sans-serif", color: 'white', textTransform: "none" }}
+                                    >Agregar examenes</Button>
+                                </div>
+                            </div>
+                        </> :
                             <>
-                                <form onSubmit={this.props.handleSubmit(this.handleSubmitConsulta)}>
-                                    <div className="row">
-                                        <div className="col-sm-4">
-                                            <Field name="diagnostico" validate={[requerido,validacionVeintiCincoCaracteres,minimoTresCaracteres]} component={generarInput} label="Diagnostico" />
-                                        </div>
-                                        <div className="col-sm-4">
-                                            <Field name="tratamiento" validate={[requerido,validacionCuarentaCaracteres,minimoTresCaracteres]} component={generarInput} label="Tratamiento" />
-                                        </div>
-                                        <div className="col-sm-2" style={{ paddingLeft: '0px', paddingTop: '15px' }}>
-                                            <Button style={{ background: '#1b9e2f',color:'white', fontSize: "14px", fontFamily: "sans-serif", textTransform: "none" }} className="btn btn-dark" variant="contained" startIcon={<CheckIcon />} type="submit"></Button>{''}
-                                        </div>
-                                        <div className="col-sm-2" style={{ paddingLeft: '0px', paddingTop: '15px' }}>
-                                            <Button style={{ background: '#781422',color:'white', fontSize: "14px", fontFamily: "sans-serif", textTransform: "none" }} className="btn btn-dark" variant="contained" onClick={this.cambiar} startIcon={<CancelIcon />}></Button>{''}
-                                        </div>
-                                    </div>
-                                </form>
+                                <div className="row" style={{ paddingLeft: '16px', paddingTop: '0px', paddingBottom: '13px', paddingRigth: '12px' }}>
+                                    <ExamenForm cambiar={this.cambiarExamenes} />
+                                </div>
                             </>
                         }
-                        {this.state.detalles.length === 0 ? <></> :
+                        {this.state.habilitado ? <>
+                            <div className="row" style={{ paddingLeft: '0px', paddingTop: '10px', paddingBottom: '23px' }}>
+                                <div className="col-sm-12">
+                                    <Button
+                                        onClick={this.cambiar}
+                                        variant="contained"
+                                        color="secondary"
+                                        startIcon={<AddIcon />}
+                                        style={{ background: '#001F54', fontSize: "13px", fontFamily: "sans-serif", color: 'white', textTransform: "none" }}
+                                    >Agregar detalles de consulta</Button>
+                                </div>
+                            </div>
+                        </> :
                             <>
-                                <MaterialTable
-                                    title=""
-                                    localization={{
-                                        header: {
-                                            actions: ' '
-                                        },
-                                        pagination: {
-                                            nextTooltip: 'Siguiente ',
-                                            previousTooltip: 'Anterior',
-                                            labelDisplayedRows: '{from}-{to} de {count}',
-                                            lastTooltip: 'Ultima pagina',
-                                            firstTooltip: 'Primera pagina',
-                                            labelRowsSelect: 'Registros',
-                                            firstAriaLabel: 'oooo'
-                                        },
-                                        body: {
-                                            emptyDataSourceMessage: 'Aun no hay ningun detalle de consulta'
-                                        },
-                                        toolbar: {
-                                            searchTooltip: 'Buscar',
-                                            searchPlaceholder: 'Buscar'
-                                        }
-                                    }}
-                                    columns={[
-                                        { title: 'Diagnostico', field: 'diagnostico', headerStyle: estiloCabecera, cellStyle: estiloFila },
-                                        { title: 'Tratamiento', field: 'tratamiento', headerStyle: estiloCabecera, cellStyle: estiloFila }
-                                    ]}
-                                    data={this.state.detalles}
-                                    options={{
-                                        search: false,
-                                        rowStyle: estiloFila
-                                    }}
-                                />
+                                <div className="row" style={{ paddingLeft: '16px', paddingTop: '0px', paddingBottom: '13px', paddingRigth: '12px' }}>
+                                    <DetalleConsultaForm cambiar={this.cambiar} />
+                                </div>
                             </>
+                        }
+                        <br />
+                        <br />
+                        {detallesConsulta.length === 0 ? <></> :
+                            <ExpansionPanel>
+                                <ExpansionPanelSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel1a-content"
+                                    id="panel1a-header"
+                                >
+                                    <Typography  style={{fontSize:'15px'}}>Detalles de consulta</Typography>
+                                </ExpansionPanelSummary>
+                                <ExpansionPanelDetails>
+                                    {/* detallesConsulta */}
+                                    <Table bordered hover striped>
+                                        <thead className='thead-dark' style={{fontSize:'13px'}}>
+                                            <tr>
+                                                <th>Diagnostico</th>
+                                                <th>tratamiento</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody style={{fontSize:'12px'}}>
+                                            {
+                                                detallesConsulta.length === 0 ?
+                                                    <tr align="center">
+                                                        <td colSpan="7">No Books Available.</td>
+                                                    </tr> :
+                                                    detallesConsulta.map((book) => (
+                                                        <tr key={book.id}>
+                                                            <td>{book.diagnostico}</td>
+                                                            <td>{book.tratamiento}</td>
+                                                            <td>
+                                                                <ButtonGroup>
+                                                                    {/* <Button size="sm" variant="outline-danger" onClick={this.editConsulta.bind(this, book)}><FontAwesomeIcon icon={faEdit} /></Button> */}
+                                                                    <Button size="sm" variant="outline-danger" onClick={this.deleteBook.bind(this, book.id)}><FontAwesomeIcon icon={faTrash} /></Button>
+                                                                    {/* <Button size="sm" variant="outline-info" onClick={this.viewDetails.bind(this, book)}><FontAwesomeIcon icon={faEye} /></Button> */}
+                                                                </ButtonGroup>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                            }
+                                        </tbody>
+                                    </Table>
+                                </ExpansionPanelDetails>
+                            </ExpansionPanel>
+                        }
+                        {examenesRegistrar.length === 0 ? <></> :
+                            <ExpansionPanel>
+                                <ExpansionPanelSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel2a-content"
+                                    id="panel2a-header">
+                                    <Typography style={{fontSize:'15px'}}>Examenes</Typography>
+                                </ExpansionPanelSummary>
+                                <ExpansionPanelDetails>
+                                    <Table bordered hover striped>
+                                        <thead className='thead-dark' style={{fontSize:'13px'}}>
+                                            <tr>
+                                                <th>Codigo</th>
+                                                <th>examen</th>
+                                                <th>Informacion adicional</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody style={{fontSize:'12px'}}>
+                                            {
+                                                examenesRegistrar.length === 0 ?
+                                                    <tr align="center">
+                                                        <td colSpan="7">No Books Available.</td>
+                                                    </tr> :
+                                                    examenesRegistrar.map((book) => (
+                                                        <tr key={book.value}>
+                                                            <td>{book.value}</td>
+                                                            <td>{book.label}</td>
+                                                            <td>{book.info}</td>
+                                                            <td>
+                                                                <ButtonGroup>
+                                                                    {/* <Button size="sm" variant="outline-danger" onClick={this.editConsulta.bind(this, book)}><FontAwesomeIcon icon={faEdit} /></Button> */}
+                                                                    <Button size="sm" variant="outline-danger" onClick={this.deleteExamen.bind(this, book)}><FontAwesomeIcon icon={faTrash} /></Button>
+                                                                    {/* <Button size="sm" variant="outline-info" onClick={this.viewDetails.bind(this, book)}><FontAwesomeIcon icon={faEye} /></Button> */}
+                                                                </ButtonGroup>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                            }
+                                        </tbody>
+                                    </Table>
+                                </ExpansionPanelDetails>
+                            </ExpansionPanel>
                         }
                     </ModalBody>
                 </Modal>
@@ -186,23 +313,46 @@ class PopUpActividad extends React.Component {
     }
 }
 
-const estiloCabecera = {
-    fontSize: '15px',
-    fontFamily: 'sans-serif',
-    padding: '8px',
-    background: '#e7ecf1'
+export const ReduxFormSelect = props => {
+    const customStyles = {
+        option: (provided, state) => ({
+            ...provided,
+            fontSize: 13
+        }),
+        control: styles => ({ ...styles, backgroundColor: 'white', fontSize: 13, fontFamily: 'sans-serif' }),
+        singleValue: (provided, state) => {
+            const opacity = state.isDisabled ? 0.5 : 1;
+            const transition = 'opacity 300ms';
+            return { ...provided, opacity, transition };
+        }
+    }
+    const { input, options } = props;
+    const { touched, error } = props.meta;
+    return (
+        <>
+            <Select
+                {...input}
 
-}
-
-const estiloFila = {
-    fontSize: '14px',
-    fontFamily: 'sans-serif',
-    padding: '8px',
+                styles={customStyles}
+                isSearchable={false}
+                placeholder='Seleccione un medico'
+                onChange={value => input.onChange(value)}
+                onBlur={() => input.onBlur(input.value)}
+                noOptionsMessage={() => 'Aun no hay ningun medico registrado'}
+                options={options}
+            />
+            {touched && ((error && <span className="text-danger form-group" style={{ fontSize: '12px', fontFamily: 'sans-serif' }}>{error}</span>))}
+        </>
+    )
 }
 
 function mapStateToProps(state) {
     return {
-        mensaje: state.consulta.mensaje
+        mensaje: state.consulta.mensaje,
+        detallesConsulta: state.detalle.detallesConsultas,
+        medicos: state.medico.medicos,
+        examenes: state.examen.examenes,
+        examenesRegistrar: state.examen.examenesRegistrar
     }
 }
 
@@ -210,4 +360,4 @@ let formulario = reduxForm({
     form: 'registrarConsulta'
 })(PopUpActividad)
 
-export default withRouter(connect(mapStateToProps, { actionAgregarConsulta, actionMensajeRegistrar })(formulario));
+export default withRouter(connect(mapStateToProps, { actionAgregarConsulta, actionGet,actionExamenRecuperar,detalleConsultaAsignar, actionAsignarExamenRegistrar,borrarDetalle, actualizarExamenRegistrar, actionMedicos, actionMensajeRegistrar })(formulario));

@@ -7,10 +7,11 @@ import { withRouter } from 'react-router-dom';
 import { generarInput } from '../utilitario/GenerarInput.js';
 import AddIcon from '@material-ui/icons/Add';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
-import { requerido, minimoTresCaracteres, validacionVeintiCincoCaracteres, validacionCincuentaCaracteres } from '../utilitario/ValidacionCampos.js';
-import { actionAgregarConsulta, actionMensajeRegistrar } from '../actions/actionDetalleConsulta.js';
-import { actionGet } from '../actions/actionConsulta.js';
+import { requerido, minimoTresCaracteres, validacionCincuentaCaracteres, seleccione } from '../utilitario/ValidacionCampos.js';
+import { actionGet, actionGetExamenesNoAsociados, actionAgregarExamenConsulta } from '../actions/actionExamen.js';
+
 import { connect } from 'react-redux';
+import Select from 'react-select';
 import Snackbar from '@material-ui/core/Snackbar';
 import Alert from 'react-bootstrap/Alert';
 
@@ -47,7 +48,7 @@ class PopUpDetalle extends React.Component {
 
     opciones = () => {
         let respuesta = [];
-        this.props.consultas.forEach(
+        this.props.examenesNoAsociados.forEach(
             modulo => {
                 let objeto = {
                     label: modulo.nombreMedico,
@@ -60,9 +61,7 @@ class PopUpDetalle extends React.Component {
     }
 
     componentWillMount() {
-        // this.props.actionConsultarModulos(localStorage.getItem('Token'));
-        this.props.actionGet();
-
+        this.props.actionGetExamenesNoAsociados(this.props.codigoConsulta);
     }
 
     handleClose() {
@@ -72,53 +71,67 @@ class PopUpDetalle extends React.Component {
 
     }
 
+    opcionesExamen = () => {
+        let respuesta = [];
+        this.props.examenesNoAsociados.forEach(
+            examen => {
+                let objeto = {
+                    label: examen.nombre,
+                    value: examen.idExamen,
+                }
+                respuesta.push(objeto);
+            }
+        )
+        return respuesta;
+    }
+
+
     componentDidUpdate() {
         switch (this.props.mensaje) {
-            case 'Detalle de consulta registrado':
-               
+            case 'Examen agregado':
+                this.props.actionGetExamenesNoAsociados(this.props.codigoConsulta);
+                this.opcionesExamen();
                 break;
             default:
                 break;
         }
-        this.props.actionMensajeRegistrar('');
     }
 
     handleSubmit = formValues => {
-        let detalle = {
-            'diagnostico': formValues.diagnostico,
-            'tratamiento': formValues.tratamiento,
-            'consultaDto': {
-                'id': this.props.codigoConsulta
-            }
+        let examen = {
+            'idConsulta': this.props.codigoConsulta,
+            'idExamen': formValues.examen.value,
+            'infoAdicional': formValues.infoAdicional
         }
         this.props.reset();
         this.setState(prevState => ({
             modal: !prevState.modal
         }));
-        this.props.actionAgregarConsulta(detalle);
+        this.props.actionAgregarExamenConsulta(examen);
+        this.props.actionGetExamenesNoAsociados(this.props.codigoConsulta);
     }
 
     render() {
         return (
             <div>
-                <Button style={{ background: '#001F54', color: 'white', fontSize: "14px", textTransform: "none" }} startIcon={<AddIcon />} className="btn btn-dark" variant="contained" onClick={this.toggle}>Registrar detalle consulta</Button>
+                <Button style={{ background: '#001F54', color: 'white', fontSize: "14px", textTransform: "none" }} startIcon={<AddIcon />} className="btn btn-dark" variant="contained" onClick={this.toggle}>Agregar examen</Button>
                 <Modal isOpen={this.state.modal}
                     toggle={this.toggle}
                     className={this.props.className}
                     style={{ paddingTop: '120px' }}
-                    size="col-md-4"
+                    size="col-sm-2"
                 >
-                    <ModalHeader toggle={this.toggle} className="center">Crear detalle de consulta</ModalHeader>
+                    <ModalHeader toggle={this.toggle} className="center">Agregar examen </ModalHeader>
                     <ModalBody>
                         <form onSubmit={this.props.handleSubmit(this.handleSubmit)}>
                             <div className="row">
-                                <div className="col-sm-12">
-                                    <Field name="diagnostico" validate={[requerido, validacionVeintiCincoCaracteres, minimoTresCaracteres]} component={generarInput} label="Diagnostico" />
+                                <div className="col-sm-12" style={{ paddingLeft: '15px', paddingTop: '15px', zIndex: '2' }}>
+                                    <Field name="examen" component={ReduxFormSelect} validate={[seleccione]} options={this.opcionesExamen()} />
                                 </div>
                             </div>
                             <div className="row">
                                 <div className="col-sm-12">
-                                    <Field name="tratamiento" type='text' validate={[requerido, validacionCincuentaCaracteres, minimoTresCaracteres]} component={generarInput} label="Tratamiento" />
+                                    <Field name="infoAdicional" validate={[requerido, validacionCincuentaCaracteres, minimoTresCaracteres]} component={generarInput} label="Informacion adicional" />
                                 </div>
                             </div>
                             <ModalFooter>
@@ -139,15 +152,49 @@ class PopUpDetalle extends React.Component {
     }
 }
 
+export const ReduxFormSelect = props => {
+    const customStyles = {
+        option: (provided, state) => ({
+            ...provided,
+            fontSize: 13
+        }),
+        control: styles => ({ ...styles, backgroundColor: 'white', fontSize: 13, fontFamily: 'sans-serif' }),
+        singleValue: (provided, state) => {
+            const opacity = state.isDisabled ? 0.5 : 1;
+            const transition = 'opacity 300ms';
+            return { ...provided, opacity, transition };
+        }
+    }
+    const { input, options } = props;
+    const { touched, error } = props.meta;
+    return (
+        <>
+            <Select
+                {...input}
+                styles={customStyles}
+                isSearchable={false}
+                placeholder='Examen'
+                onChange={value => input.onChange(value)}
+                onBlur={() => input.onBlur(input.value)}
+                noOptionsMessage={() => 'Aun no hay ningun examen registrado'}
+                options={options}
+            />
+            {touched && ((error && <span className="text-danger form-group" style={{ fontSize: '12px', fontFamily: 'sans-serif' }}>{error}</span>))}
+        </>
+    )
+}
+
+
 function mapStateToProps(state) {
     return {
-        mensaje: state.detalle.mensaje,
-        consultas: state.consulta.consultas
+        examenesNoAsociados: state.examen.examenesNoAsociados,
+        mensajeExamen: state.examen.mensaje
     }
 }
 
+
 let formulario = reduxForm({
-    form: 'registrarDetalleConsulta'
+    form: 'registrarExamenConsulta'
 })(PopUpDetalle)
 
-export default withRouter(connect(mapStateToProps, { actionAgregarConsulta, actionMensajeRegistrar, actionGet })(formulario));
+export default withRouter(connect(mapStateToProps, { actionGet, actionGetExamenesNoAsociados, actionAgregarExamenConsulta })(formulario));

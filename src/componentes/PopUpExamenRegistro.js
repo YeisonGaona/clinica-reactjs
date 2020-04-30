@@ -7,9 +7,10 @@ import { withRouter } from 'react-router-dom';
 import { generarInput } from '../utilitario/GenerarInput.js';
 import AddIcon from '@material-ui/icons/Add';
 import SaveAltIcon from '@material-ui/icons/SaveAlt';
-import { requerido, minimoTresCaracteres, validacionVeintiCincoCaracteres, validacionCincuentaCaracteres } from '../utilitario/ValidacionCampos.js';
+import { requerido, minimoTresCaracteres,validacionCientoCincuentaCaracteres, validacionCincuentaCaracteres } from '../utilitario/ValidacionCampos.js';
 import { actionAgregarConsulta, actionMensajeRegistrar } from '../actions/actionDetalleConsulta.js';
 import { actionGet } from '../actions/actionConsulta.js';
+import{actionAgregarExamen} from '../actions/actionExamen.js';
 import { connect } from 'react-redux';
 import Snackbar from '@material-ui/core/Snackbar';
 import Alert from 'react-bootstrap/Alert';
@@ -45,24 +46,9 @@ class PopUpDetalle extends React.Component {
         }));
     }
 
-    opciones = () => {
-        let respuesta = [];
-        this.props.consultas.forEach(
-            modulo => {
-                let objeto = {
-                    label: modulo.nombreMedico,
-                    value: modulo.id,
-                }
-                respuesta.push(objeto);
-            }
-        )
-        return respuesta;
-    }
 
     componentWillMount() {
         // this.props.actionConsultarModulos(localStorage.getItem('Token'));
-        this.props.actionGet();
-
     }
 
     handleClose() {
@@ -73,52 +59,49 @@ class PopUpDetalle extends React.Component {
     }
 
     componentDidUpdate() {
-        switch (this.props.mensaje) {
-            case 'Detalle de consulta registrado':
+        // switch (this.props.mensaje) {
+        //     case 'Detalle de consulta registrado':
                
-                break;
-            default:
-                break;
-        }
-        this.props.actionMensajeRegistrar('');
+        //         break;
+        //     default:
+        //         break;
+        // }
+        // this.props.actionMensajeRegistrar('');
     }
 
     handleSubmit = formValues => {
-        let detalle = {
-            'diagnostico': formValues.diagnostico,
-            'tratamiento': formValues.tratamiento,
-            'consultaDto': {
-                'id': this.props.codigoConsulta
-            }
+        let examen = {
+            'nombre': formValues.nombre,
+            'descripcion': formValues.descripcion
         }
         this.props.reset();
         this.setState(prevState => ({
             modal: !prevState.modal
         }));
-        this.props.actionAgregarConsulta(detalle);
+        this.props.actionAgregarExamen(examen);
     }
 
     render() {
         return (
             <div>
-                <Button style={{ background: '#001F54', color: 'white', fontSize: "14px", textTransform: "none" }} startIcon={<AddIcon />} className="btn btn-dark" variant="contained" onClick={this.toggle}>Registrar detalle consulta</Button>
+                <Button style={{ background: '#001F54', color: 'white', fontSize: "14px", textTransform: "none" }} startIcon={<AddIcon />} className="btn btn-dark" variant="contained" onClick={this.toggle}>Agregar examen</Button>
                 <Modal isOpen={this.state.modal}
                     toggle={this.toggle}
                     className={this.props.className}
                     style={{ paddingTop: '120px' }}
                     size="col-md-4"
                 >
-                    <ModalHeader toggle={this.toggle} className="center">Crear detalle de consulta</ModalHeader>
+                    <ModalHeader toggle={this.toggle} className="center">Agregar examen</ModalHeader>
                     <ModalBody>
                         <form onSubmit={this.props.handleSubmit(this.handleSubmit)}>
                             <div className="row">
                                 <div className="col-sm-12">
-                                    <Field name="diagnostico" validate={[requerido, validacionVeintiCincoCaracteres, minimoTresCaracteres]} component={generarInput} label="Diagnostico" />
+                                    <Field name="nombre" validate={[requerido, validacionCincuentaCaracteres, minimoTresCaracteres]} component={generarInput} label="Nombre" />
                                 </div>
                             </div>
                             <div className="row">
                                 <div className="col-sm-12">
-                                    <Field name="tratamiento" type='text' validate={[requerido, validacionCincuentaCaracteres, minimoTresCaracteres]} component={generarInput} label="Tratamiento" />
+                                    <Field name="descripcion" type='text' validate={[requerido, validacionCientoCincuentaCaracteres, minimoTresCaracteres]} component={generarInput} label="Descripcion" />
                                 </div>
                             </div>
                             <ModalFooter>
@@ -150,4 +133,4 @@ let formulario = reduxForm({
     form: 'registrarDetalleConsulta'
 })(PopUpDetalle)
 
-export default withRouter(connect(mapStateToProps, { actionAgregarConsulta, actionMensajeRegistrar, actionGet })(formulario));
+export default withRouter(connect(mapStateToProps, { actionAgregarConsulta,actionAgregarExamen, actionMensajeRegistrar, actionGet })(formulario));

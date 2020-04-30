@@ -2,13 +2,16 @@
 import {
     MENSAJE_REGISTRAR,
     GET_CONSULTAS,
-    AGREGAR_CONSULTA
+    AGREGAR_CONSULTA,
+    CONSULTA_EDITAR
 } from '../actions/actionConsulta.js'
 
 
 const initialState = {
     mensaje: '',
-    consultas: []
+    consultas: [],
+    consultaEditar: [],
+
 }
 
 export function reducerConsulta(state = initialState, action) {
@@ -22,6 +25,8 @@ export function reducerConsulta(state = initialState, action) {
                 ...state,
                 consultas: state.consultas.concat(action.consultaARegistrar)
             }
+        case CONSULTA_EDITAR:
+            return Object.assign({}, state, { consultaEditar: action.consulta })
         default:
             return state
     }

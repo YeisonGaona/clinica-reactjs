@@ -3,6 +3,7 @@ import axios from 'axios';
 export const MENSAJE_REGISTRAR = 'MENSAJE_REGISTRAR';
 export const GET_CONSULTAS = 'GET_CONSULTAS';
 export const AGREGAR_CONSULTA = 'AGREGAR_CONSULTA';
+export const CONSULTA_EDITAR='CONSULTA_EDITAR';
 
 export function actionMensajeRegistrar(mensaje) {
     return (dispatch, getState) => {
@@ -12,6 +13,18 @@ export function actionMensajeRegistrar(mensaje) {
         });
     }
 }
+
+
+export function asignarConsultaEditar(consulta) {
+    return (dispatch, getState) => {
+        dispatch({
+            type: CONSULTA_EDITAR,
+            consulta
+        });
+    }
+}
+
+
 
 export function actionGet() {
     return (dispatch, getState) => {
@@ -50,10 +63,6 @@ export function actionAgregarConsulta(consulta) {
                 dispatch({
                     type: MENSAJE_REGISTRAR,
                     mensaje: 'Consulta registrada'
-                });
-                dispatch({
-                    type: AGREGAR_CONSULTA,
-                    consultaARegistrar: response.data
                 });
             }).catch((error) => {
                 if (error.request.status === 400) {

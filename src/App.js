@@ -2,7 +2,6 @@ import React from 'react';
 
 
 //componentes
-import Consulta from './componentes/Consulta.js';
 import Menu from './componentes/Menu.js';
 
 //store
@@ -13,7 +12,10 @@ import reducers from './reducers';
 import thunk from 'redux-thunk'
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import DetalleConsulta from './componentes/DetalleConsulta.js';
+import ConsultaList from './componentes/ConsultaList.js';
+import ExamenList from './componentes/ExamenList.js';
+import MedicoList from './componentes/MedicoList.js';
+import NotFound from './componentes/Pagina 404.js';
 
 const createStoreWithMiddleware = applyMiddleware(thunk)(createStore);
 
@@ -24,11 +26,15 @@ class App extends React.Component {
         <Router>
           <Switch>
             <Route exact path="/">
-              <Menu children={<Consulta />} />
+              <Menu children={<ConsultaList />} />
             </Route>
-            <Route exact path="/detalle">
-              <Menu children={<DetalleConsulta />} />
+            <Route exact path="/examenes">
+              <Menu children={<ExamenList />} />
             </Route>
+            <Route exact path="/medicos">
+              <Menu children={<MedicoList />} />
+            </Route>
+            <Route component={NotFound} />
           </Switch>
         </Router>
       </Provider>
