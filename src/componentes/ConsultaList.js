@@ -1,6 +1,6 @@
 import React from 'react';
 import { actionGet, actionEditarConsulta, actionMensajeRegistrar, asignarConsultaEditar, actionEliminarConsulta } from '../actions/actionConsulta.js';
-import { actionGetDetallesConExamenes, asignarDetalleConsultaEditar, actionEditarConsulta as actionEditarDetalleConsulta, actionEliminarConsulta as actionEliminarDetalleConsulta } from '../actions/actionDetalleConsulta.js';
+import { actionGetDetallesConExamenes, asignarDetalleConsultaEditar, actionEditarDetalleConsulta , actionEliminarDetalleConsulta} from '../actions/actionDetalleConsulta.js';
 import { actionGet as actionMedicos } from '../actions/actionMedico.js';
 import {actionEliminarExamenConsulta,actionGetExamenesNoAsociados} from '../actions/actionExamen.js';
 import Snackbar from '@material-ui/core/Snackbar';

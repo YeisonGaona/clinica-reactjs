@@ -2,12 +2,12 @@ import axios from 'axios';
 
 export const MENSAJE_REGISTRAR = 'MENSAJE_REGISTRAR';
 export const GET_DETALLE = 'GET_DETALLE';
-export const GET_DETALLE_EXAMEN= 'GET_DETALLE_EXAMEN';
+export const GET_DETALLE_EXAMEN = 'GET_DETALLE_EXAMEN';
 export const AGREGAR_DETALLE = 'AGREGAR_DETALLE';
-export const AGREGAR_DETALLE_REGISTRO='AGREGAR_DETALLE_REGISTRO';
-export const BORRAR_DETALLE='BORRAR_DETALLE';
-export const ASIGNAR_DETALLE_CONSULTA='ASIGNAR_DETALLE_CONSULTA';
-export const DETALLE_EDITAR='DETALLE_EDITAR';
+export const AGREGAR_DETALLE_REGISTRO = 'AGREGAR_DETALLE_REGISTRO';
+export const BORRAR_DETALLE = 'BORRAR_DETALLE';
+export const ASIGNAR_DETALLE_CONSULTA = 'ASIGNAR_DETALLE_CONSULTA';
+export const DETALLE_EDITAR = 'DETALLE_EDITAR';
 
 export function actionMensajeRegistrar(mensaje) {
     return (dispatch, getState) => {
@@ -24,6 +24,28 @@ export function asignarDetalleConsultaEditar(detalle) {
         dispatch({
             type: DETALLE_EDITAR,
             detalle
+        });
+    }
+}
+
+export function asignarDetalleExamen() {
+    return (dispatch, getState) => {
+        dispatch({
+            type: GET_DETALLE_EXAMEN,
+            detalleExamen: {
+                consulta: {
+                    id: 0,
+                    medico: {
+                        id: 0,
+                        cedula: 0,
+                        nombreMedico: '',
+                        direccion: ''
+                    },
+                    fecha: '',
+                    detalleConsultaDto: []
+                },
+                listaExamen: []
+            }
         });
     }
 }
@@ -56,6 +78,18 @@ export function borrarDetalle(idDetalle) {
         });
     }
 }
+
+export function filtrarDetalles(respuesta) {
+    return (dispatch, getState) => {
+        let filtrado = getState().detalle.detallesExamen;
+        filtrado.consulta.detalleConsultaDto=respuesta
+        dispatch({
+            type: GET_DETALLE_EXAMEN,
+            detalleExamen:filtrado
+        });
+    }
+}
+
 
 export function actionGet() {
     return (dispatch, getState) => {
@@ -117,7 +151,7 @@ export function actionAgregarConsulta(consulta) {
     }
     return (dispatch, getState) => {
         axios.post(`http://localhost:8081/detalleConsultas/guardar`, consulta, { headers: headers })
-            .then(response => { 
+            .then(response => {
                 dispatch({
                     type: MENSAJE_REGISTRAR,
                     mensaje: 'Detalle de consulta registrado'
@@ -143,7 +177,7 @@ export function actionAgregarConsulta(consulta) {
     }
 }
 
-export function actionEditarConsulta(consulta) {
+export function actionEditarDetalleConsulta(consulta) {
     const headers = {
         'Content-Type': 'application/json'
     }
@@ -170,7 +204,7 @@ export function actionEditarConsulta(consulta) {
     }
 }
 
-export function actionEliminarConsulta(id) {
+export function actionEliminarDetalleConsulta(id) {
     const headers = {
         'Content-Type': 'application/json'
     }

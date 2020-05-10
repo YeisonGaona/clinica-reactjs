@@ -23,6 +23,16 @@ export function asignarMedicoEditar(medico) {
     }
 }
 
+export function filtrarMedicos(medicosFiltrados) {
+    return (dispatch, getState) => {
+        dispatch({
+            type: GET_MEDICO,
+            respuesta:medicosFiltrados
+        });
+    }
+}
+
+
 
 // actionAgregarMedico
 

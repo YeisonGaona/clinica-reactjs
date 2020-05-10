@@ -68,6 +68,7 @@ export function reducerDetalleConsulta(state = initialState, action) {
                 detalles: state.detalles.concat(action.detalleARegistrar)
             }
         case GET_DETALLE_EXAMEN:
+            console.log('reducer',action.detalleExamen);
             return Object.assign({}, state, { detallesExamen: action.detalleExamen })
         default:
             return state

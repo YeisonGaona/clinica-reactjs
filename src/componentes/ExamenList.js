@@ -1,10 +1,11 @@
 import React from 'react';
 import { actionGet, actionEditarConsulta, asignarConsultaEditar, actionEliminarConsulta } from '../actions/actionConsulta.js';
-import { actionGetDetallesConExamenes, asignarDetalleConsultaEditar, actionEditarConsulta as actionEditarDetalleConsulta, actionEliminarConsulta as actionEliminarDetalleConsulta } from '../actions/actionDetalleConsulta.js';
+import { actionGetDetallesConExamenes, asignarDetalleConsultaEditar, actionEditarDetalleConsulta, actionEliminarDetalleConsulta } from '../actions/actionDetalleConsulta.js';
 import { actionGet as actionMedicos } from '../actions/actionMedico.js';
-import { actionEliminarExamen, actionGetExamenesNoAsociados, actionGet as actionGetExamenes, asignarExamenEditar, actionEditarExamen, actionMensajeRegistrar } from '../actions/actionExamen.js';
+import { actionFiltrarExamenPorNombre, actionEliminarExamen, actionGetExamenesNoAsociados, actionGet as actionGetExamenes, asignarExamenEditar, actionEditarExamen, actionMensajeRegistrar } from '../actions/actionExamen.js';
 import Snackbar from '@material-ui/core/Snackbar';
 import { Alert as Mensaje } from '@material-ui/lab';
+import Alert from 'react-bootstrap/Alert';
 import { generarInput } from '../utilitario/GenerarInput.js';
 import { reduxForm, Field } from 'redux-form';
 import { requerido, validacionCientoCincuentaCaracteres, minimoTresCaracteres, validacionCincuentaCaracteres } from '../utilitario/ValidacionCampos.js';
@@ -76,6 +77,22 @@ class ConsultaList extends React.Component {
             [event.target.name]: event.target.value
         });
     };
+
+    cancelSearch = () => {
+        this.props.actionGetExamenes();
+        this.setState({ "search": '' });
+    };
+
+    searchData = () => {
+        const { search } = this.state;
+        var difficult_tasks = [];
+        this.props.examenes.forEach(function (task) {
+            if (task.nombre === search) {
+                difficult_tasks.push(task);
+            }
+        });
+        this.props.actionFiltrarExamenPorNombre(difficult_tasks);
+    }
 
     handleSubmitExamen = formValues => {
         let examen = {
@@ -196,53 +213,57 @@ class ConsultaList extends React.Component {
                             <FontAwesomeIcon icon={faList} /> Lista de examenes
                         </div>
                         <div style={{ "float": "right" }}>
-                            <InputGroup size="sm">
-                                <FormControl placeholder="Search" name="search" value={search}
-                                    className={"info-border bg-dark text-white"}
-                                    onChange={this.searchChange} />
-                                <InputGroup.Append>
-                                    <Button size="sm" variant="outline-info" type="button" onClick={this.searchData}>
-                                        <FontAwesomeIcon icon={faSearch} />
-                                    </Button>
-                                    <Button size="sm" variant="outline-danger" type="button" onClick={this.cancelSearch}>
-                                        <FontAwesomeIcon icon={faTimes} />
-                                    </Button>
-                                </InputGroup.Append>
-                            </InputGroup>
+                            {(editarExamen | examenes.length === 0) & search === '' ?
+                                <> </> :
+                                <InputGroup size="sm">
+                                    <FormControl placeholder="Buscar por nombre" name="search" value={search}
+                                        className={"info-border bg-dark text-white"}
+                                        onChange={this.searchChange} />
+                                    <InputGroup.Append>
+                                        <Button size="sm" variant="outline-info" type="button" onClick={this.searchData}>
+                                            <FontAwesomeIcon icon={faSearch} />
+                                        </Button>
+                                        <Button size="sm" variant="outline-danger" type="button" onClick={this.cancelSearch}>
+                                            <FontAwesomeIcon icon={faTimes} />
+                                        </Button>
+                                    </InputGroup.Append>
+                                </InputGroup>
+                            }
                         </div>
                     </Card.Header>
                     <Card.Body>
-                        <Table bordered hover striped>
-                            <thead className='thead-dark'>
-                                <tr>
-                                    <th>Codigo</th>
-                                    <th>Nombre</th>
-                                    <th>Descripcion</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {
-                                    examenes.length === 0 ?
-                                        <tr align="center">
-                                            <td colSpan="7">No Books Available.</td>
-                                        </tr> :
-                                        examenes.map((book) => (
-                                            <tr key={book.idExamen}>
-                                                <td>{book.idExamen}</td>
-                                                <td>{book.nombre}</td>
-                                                <td>{book.descripcion}</td>
-                                                <td>
-                                                    <ButtonGroup>
-                                                        <Button size="sm" variant="outline-danger" onClick={this.editConsulta.bind(this, book)}><FontAwesomeIcon icon={faEdit} /></Button>
-                                                        <Button size="sm" variant="outline-danger" onClick={this.deleteExamen.bind(this, book.idExamen)}><FontAwesomeIcon icon={faTrash} /></Button>
-                                                    </ButtonGroup>
-                                                </td>
+                        {
+                            examenes.length === 0 ?
+                                <Alert variant='info'>
+                                    Sin examenes asociados
+                                    </Alert> : <>
+                                    <Table bordered hover striped>
+                                        <thead className='thead-dark'>
+                                            <tr>
+                                                <th>Codigo</th>
+                                                <th>Nombre</th>
+                                                <th>Descripcion</th>
                                             </tr>
-                                        ))
-                                }
-                            </tbody>
-                        </Table>
-                        {/* {consultas.length > 0 ?
+                                        </thead>
+                                        <tbody>
+                                            {
+                                                examenes.map((book) => (
+                                                    <tr key={book.idExamen}>
+                                                        <td>{book.idExamen}</td>
+                                                        <td>{book.nombre}</td>
+                                                        <td>{book.descripcion}</td>
+                                                        <td>
+                                                            <ButtonGroup>
+                                                                <Button size="sm" variant="outline-info" onClick={this.editConsulta.bind(this, book)}><FontAwesomeIcon icon={faEdit} /></Button>
+                                                                <Button size="sm" variant="outline-danger" onClick={this.deleteExamen.bind(this, book.idExamen)}><FontAwesomeIcon icon={faTrash} /></Button>
+                                                            </ButtonGroup>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            }
+                                        </tbody>
+                                    </Table>
+                                    {/* {consultas.length > 0 ?
                             <>
                                 <div style={{ "float": "left" ,color:'black'}}>
                                     Showing Page {currentPage} of {totalPages}
@@ -276,6 +297,9 @@ class ConsultaList extends React.Component {
                             </>
                             : null
                         } */}
+                                </>
+                        }
+
                     </Card.Body>
                     <Card.Footer>
                         <div style={{ "float": "right", color: 'black' }}>
@@ -314,4 +338,4 @@ let formulario = reduxForm({
 
 
 
-export default withRouter(connect(mapStateToProps, { asignarExamenEditar, actionGet, actionEditarExamen, actionEditarConsulta, actionGetExamenesNoAsociados, actionGetExamenes, actionEliminarExamen, actionEditarDetalleConsulta, actionMedicos, actionEliminarDetalleConsulta, asignarDetalleConsultaEditar, actionGetDetallesConExamenes, actionMensajeRegistrar, asignarConsultaEditar, actionEliminarConsulta })(formulario));
+export default withRouter(connect(mapStateToProps, { actionFiltrarExamenPorNombre, asignarExamenEditar, actionGet, actionEditarExamen, actionEditarConsulta, actionGetExamenesNoAsociados, actionGetExamenes, actionEliminarExamen, actionEditarDetalleConsulta, actionMedicos, actionEliminarDetalleConsulta, asignarDetalleConsultaEditar, actionGetDetallesConExamenes, actionMensajeRegistrar, asignarConsultaEditar, actionEliminarConsulta })(formulario));

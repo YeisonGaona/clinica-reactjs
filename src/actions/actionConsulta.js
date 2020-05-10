@@ -25,6 +25,14 @@ export function asignarConsultaEditar(consulta) {
 }
 
 
+export function filtrarConsultas(respuesta) {
+    return (dispatch, getState) => {
+        dispatch({
+            type: GET_CONSULTAS,
+            respuesta
+        });
+    }
+}
 
 export function actionGet() {
     return (dispatch, getState) => {

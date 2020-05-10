@@ -1,11 +1,12 @@
 import React from 'react';
 
 // Actions
-import { actionGet, actionMensajeRegistrar, asignarMedicoEditar, actionEditarExamen, actionEliminarMedico } from '../actions/actionMedico.js';
+import { actionGet, actionMensajeRegistrar, asignarMedicoEditar, actionEditarExamen, actionEliminarMedico, filtrarMedicos } from '../actions/actionMedico.js';
 
 // Componentes
 import Snackbar from '@material-ui/core/Snackbar';
 import { Alert as Mensaje } from '@material-ui/lab';
+import Alert from 'react-bootstrap/Alert';
 import PopUpMedico from './PopUpMedico.js';
 import { generarInput } from '../utilitario/GenerarInput.js';
 import { Card, Table, ButtonGroup, Button, InputGroup, FormControl } from 'react-bootstrap';
@@ -85,6 +86,22 @@ class ConsultaList extends React.Component {
         });
     };
 
+    cancelSearch = () => {
+        this.props.actionGet();
+        this.setState({ "search": '' });
+    };
+
+    searchData = () => {
+        const { search } = this.state;
+        var difficult_tasks = [];
+        this.props.medicos.forEach(function (task) {
+            if (task.nombreMedico === search) {
+                difficult_tasks.push(task);
+            }
+        });
+        this.props.filtrarMedicos(difficult_tasks);
+    }
+
     handleSubmitExamen = formValues => {
         let medico = {
             'id': formValues.id,
@@ -158,7 +175,7 @@ class ConsultaList extends React.Component {
                 this.setState({ mensaje: 'La cedula ingresada ya esta registrada' })
                 this.props.actionMensajeRegistrar('');
                 break;
-                case 'Ocurrio un error':
+            case 'Ocurrio un error':
                 if (this.state.severidad !== 'error') {
                     this.setState({ severidad: 'error' });
                 }
@@ -220,53 +237,59 @@ class ConsultaList extends React.Component {
                             <FontAwesomeIcon icon={faList} /> Lista de medicos
                         </div>
                         <div style={{ "float": "right" }}>
-                            <InputGroup size="sm">
-                                <FormControl placeholder="Search" name="search" value={search}
-                                    className={"info-border bg-dark text-white"}
-                                    onChange={this.searchChange} />
-                                <InputGroup.Append>
-                                    <Button size="sm" variant="outline-info" type="button" onClick={this.searchData}>
-                                        <FontAwesomeIcon icon={faSearch} />
-                                    </Button>
-                                    <Button size="sm" variant="outline-danger" type="button" onClick={this.cancelSearch}>
-                                        <FontAwesomeIcon icon={faTimes} />
-                                    </Button>
-                                </InputGroup.Append>
-                            </InputGroup>
+                            {(editarMedico | medicos.length === 0) & search === '' ?
+                                <> </>
+                                :
+                                <InputGroup size="sm">
+                                    <FormControl placeholder="Search" name="Buscar por nombre" value={search}
+                                        className={"info-border bg-dark text-white"}
+                                        onChange={this.searchChange} />
+                                    <InputGroup.Append>
+                                        <Button size="sm" variant="outline-info" type="button" onClick={this.searchData}>
+                                            <FontAwesomeIcon icon={faSearch} />
+                                        </Button>
+                                        <Button size="sm" variant="outline-danger" type="button" onClick={this.cancelSearch}>
+                                            <FontAwesomeIcon icon={faTimes} />
+                                        </Button>
+                                    </InputGroup.Append>
+                                </InputGroup>
+                            }
+
                         </div>
                     </Card.Header>
                     <Card.Body>
-                        <Table bordered hover striped>
-                            <thead className='thead-dark'>
-                                <tr>
-                                    <th>Cedula</th>
-                                    <th>Nombre</th>
-                                    <th>Direccion</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {
-                                    medicos.length === 0 ?
-                                        <tr align="center">
-                                            <td colSpan="7">No se encontraron registros de medicos</td>
-                                        </tr> :
-                                        medicos.map((book) => (
-                                            <tr key={book.cedula}>
-                                                <td>{book.cedula}</td>
-                                                <td>{book.nombreMedico}</td>
-                                                <td>{book.direccion.detalle}</td>
-                                                <td>
-                                                    <ButtonGroup>
-                                                        <Button size="sm" variant="outline-danger" onClick={this.editConsulta.bind(this, book)}><FontAwesomeIcon icon={faEdit} /></Button>
-                                                        <Button size="sm" variant="outline-danger" onClick={this.deleteExamen.bind(this, book.id)}><FontAwesomeIcon icon={faTrash} /></Button>
-                                                    </ButtonGroup>
-                                                </td>
-                                            </tr>
-                                        ))
-                                }
-                            </tbody>
-                        </Table>
-                        {/* {consultas.length > 0 ?
+                        {medicos.length === 0 ?
+                            <Alert variant='info'>
+                                Sin medicos registrados
+                                         </Alert> :
+                            <>
+                                <Table bordered hover striped>
+                                    <thead className='thead-dark'>
+                                        <tr>
+                                            <th>Cedula</th>
+                                            <th>Nombre</th>
+                                            <th>Direccion</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {
+                                            medicos.map((book) => (
+                                                <tr key={book.cedula}>
+                                                    <td>{book.cedula}</td>
+                                                    <td>{book.nombreMedico}</td>
+                                                    <td>{book.direccion.detalle}</td>
+                                                    <td>
+                                                        <ButtonGroup>
+                                                            <Button size="sm" variant="outline-info" onClick={this.editConsulta.bind(this, book)}><FontAwesomeIcon icon={faEdit} /></Button>
+                                                            <Button size="sm" variant="outline-danger" onClick={this.deleteExamen.bind(this, book.id)}><FontAwesomeIcon icon={faTrash} /></Button>
+                                                        </ButtonGroup>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        }
+                                    </tbody>
+                                </Table>
+                                {/* {consultas.length > 0 ?
                             <>
                                 <div style={{ "float": "left" ,color:'black'}}>
                                     Showing Page {currentPage} of {totalPages}
@@ -300,6 +323,8 @@ class ConsultaList extends React.Component {
                             </>
                             : null
                         } */}
+                            </>
+                        }
                     </Card.Body>
                     <Card.Footer>
                         <div style={{ "float": "right", color: 'black' }}>
@@ -339,4 +364,4 @@ let formulario = reduxForm({
 
 
 
-export default withRouter(connect(mapStateToProps, { actionGet, actionMensajeRegistrar, asignarMedicoEditar, actionEditarExamen, actionEliminarMedico })(formulario));
+export default withRouter(connect(mapStateToProps, { actionGet, actionMensajeRegistrar, asignarMedicoEditar, filtrarMedicos, actionEditarExamen, actionEliminarMedico })(formulario));

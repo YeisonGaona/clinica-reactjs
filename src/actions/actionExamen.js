@@ -37,6 +37,15 @@ export function actionAsignarExamenRegistrar(examenes) {
     }
 }
 
+export function actionFiltrarExamenPorNombre(nuevosExamenes) {
+    return (dispatch, getState) => {
+        dispatch({
+            type: GET_EXAMEN,
+            respuesta:nuevosExamenes
+        });
+    }
+}
+
 
 export function actionFiltrarExamen(value) {
     return (dispatch, getState) => {
