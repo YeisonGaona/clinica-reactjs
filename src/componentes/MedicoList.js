@@ -138,6 +138,7 @@ class ConsultaList extends React.Component {
                     this.setState({ open: true });
                 }
                 this.setState({ mensaje: 'Medico eliminado' })
+                this.props.actionMensajeRegistrar('');
                 this.props.actionGet();
                 break;
             case 'Medico modificado':
@@ -183,11 +184,11 @@ class ConsultaList extends React.Component {
                     this.setState({ open: true });
                 }
                 this.setState({ mensaje: 'Ocurrio un error' })
+                this.props.actionMensajeRegistrar('');
                 break;
             default:
                 break;
         }
-        this.props.actionMensajeRegistrar('');
         //mensajeExamen
     }
 
@@ -241,7 +242,7 @@ class ConsultaList extends React.Component {
                                 <> </>
                                 :
                                 <InputGroup size="sm">
-                                    <FormControl placeholder="Search" name="Buscar por nombre" value={search}
+                                    <FormControl placeholder="Buscar por nombre" name="search" value={search}
                                         className={"info-border bg-dark text-white"}
                                         onChange={this.searchChange} />
                                     <InputGroup.Append>
