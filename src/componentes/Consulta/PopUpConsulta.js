@@ -10,8 +10,8 @@ import Select from 'react-select';
 import { generarDate } from '../../utilitario/GenerarInput.js';
 import { requerido, seleccione } from '../../utilitario/ValidacionCampos.js';
 import { actionAgregarConsulta, actionMensajeRegistrar } from '../../actions/actionConsulta.js';
-import { actionGet as actionMedicos } from '../../actions/actionMedico.js';
-import { actionExamenRecuperar, actualizarExamenRegistrar,actionAsignarExamenRegistrar,actionGet } from '../../actions/actionExamen.js';
+import { actionGetFormulario as actionMedicos } from '../../actions/actionMedico.js';
+import { actionExamenRecuperar, actualizarExamenRegistrar,actionAsignarExamenRegistrar,actionGetFormulario } from '../../actions/actionExamen.js';
 import { borrarDetalle,detalleConsultaAsignar } from '../../actions/actionDetalleConsulta.js';
 import { connect } from 'react-redux';
 
@@ -81,7 +81,7 @@ class PopUpActividad extends React.Component {
 
     componentWillMount() {
         this.props.actionMedicos();
-        this.props.actionGet();
+        this.props.actionGetFormulario();
     }
 
     componentDidUpdate() {
@@ -147,7 +147,7 @@ class PopUpActividad extends React.Component {
         this.toggle();
         this.props.actionAsignarExamenRegistrar([]);
         this.props.detalleConsultaAsignar([]);
-        this.props.actionGet();
+        this.props.actionGetFormulario();
     }
 
     render() {
@@ -360,4 +360,4 @@ let formulario = reduxForm({
     form: 'registrarConsulta'
 })(PopUpActividad)
 
-export default withRouter(connect(mapStateToProps, { actionAgregarConsulta, actionGet,actionExamenRecuperar,detalleConsultaAsignar, actionAsignarExamenRegistrar,borrarDetalle, actualizarExamenRegistrar, actionMedicos, actionMensajeRegistrar })(formulario));
+export default withRouter(connect(mapStateToProps, { actionAgregarConsulta, actionGetFormulario,actionExamenRecuperar,detalleConsultaAsignar, actionAsignarExamenRegistrar,borrarDetalle, actualizarExamenRegistrar, actionMedicos, actionMensajeRegistrar })(formulario));

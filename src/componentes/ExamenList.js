@@ -27,6 +27,7 @@ class ConsultaList extends React.Component {
     state = {
         habilitado: false,
         recuperar: false,
+        sinPermiso: false,
         severidad: 'error',
         detallesConsulta: [],
         open: false,
@@ -45,6 +46,9 @@ class ConsultaList extends React.Component {
 
 
     componentDidMount() {
+        if (sessionStorage.getItem('access-token') === null) {
+            this.props.history.push('/');
+        }
         this.props.actionGetExamenes();
     }
 
@@ -105,6 +109,9 @@ class ConsultaList extends React.Component {
 
 
     componentDidUpdate() {
+        if (sessionStorage.getItem('access-token') === null) {
+            this.props.history.push('/');
+        }
         switch (this.props.mensajeExamen) {
             case 'Examen registrado':
                 if (this.state.severidad !== 'success') {
@@ -163,157 +170,171 @@ class ConsultaList extends React.Component {
                 }
                 this.setState({ mensaje: 'Ocurrio un error' })
                 break;
+            case 'Sin permiso':
+                if (!this.state.sinPermiso) {
+                    this.setState({ sinPermiso: true });
+                }
+                break;
+            case 'Token invalido':
+                this.props.history.push('/');
+                sessionStorage.clear();
+                break;
             default:
                 break;
         }
         this.props.actionMensajeRegistrar('');
-        //mensajeExamen
     }
 
 
 
     render() {
-        const { search, editarExamen } = this.state;
+        const { search, editarExamen, sinPermiso } = this.state;
         const { examenes } = this.props;
 
         return (
-            <div>
-                {editarExamen ? <>
-                    <Card className={"border border-dark text-white"}>
-                        <Card.Header className={"bg-dark"}>
-                            <div style={{ "float": "left" }}>
-                                <FontAwesomeIcon icon={faList} /> Editar examen
+            <>
+                {!sinPermiso ?
+                    <div>
+                        {editarExamen ? <>
+                            <Card className={"border border-dark text-white"}>
+                                <Card.Header className={"bg-dark"}>
+                                    <div style={{ "float": "left" }}>
+                                        <FontAwesomeIcon icon={faList} /> Editar examen
+                                </div>
+                                </Card.Header>
+                                <Card.Body>
+                                    <form onSubmit={this.props.handleSubmit(this.handleSubmitExamen)}>
+                                        <div className="row">
+                                            <div className="col-sm-3">
+                                                <Field name="id" disabled={true} validate={[requerido]} component={generarInput} label="Codigo" />
+                                            </div>
+                                            <div className="col-sm-3">
+                                                <Field name="nombre" validate={[requerido, validacionCincuentaCaracteres, minimoTresCaracteres]} component={generarInput} label='Nombre' />
+                                            </div>
+                                            <div className="col-sm-3">
+                                                <Field name="descripcion" validate={[requerido, validacionCientoCincuentaCaracteres, minimoTresCaracteres]} component={generarInput} label="Descripcion" />
+                                            </div>
+                                            <div className="col-sm-1" style={{ padding: '15px' }}>
+                                                <Button variant="primary" style={{ fontSize: '14px' }} type='submit'>Editar</Button>{''}
+                                            </div>
+                                            <div className="col-sm-1" style={{ padding: '15px' }}>
+                                                <Button variant="danger" style={{ fontSize: '14px' }} onClick={this.ocultarEditar} >Cancelar</Button>{''}
+                                            </div>
+                                        </div>
+                                    </form>
+                                </Card.Body>
+                            </Card>
+                        </> : <><Card className={"border border-dark text-white"}>
+                            <Card.Header className={"bg-dark"}>
+                                <div style={{ "float": "left" }}>
+                                    <FontAwesomeIcon icon={faList} /> Lista de examenes
                             </div>
-                        </Card.Header>
-                        <Card.Body>
-                            <form onSubmit={this.props.handleSubmit(this.handleSubmitExamen)}>
-                                <div className="row">
-                                    <div className="col-sm-3">
-                                        <Field name="id" disabled={true} validate={[requerido]} component={generarInput} label="Codigo" />
-                                    </div>
-                                    <div className="col-sm-3">
-                                        <Field name="nombre" validate={[requerido, validacionCincuentaCaracteres, minimoTresCaracteres]} component={generarInput} label='Nombre' />
-                                    </div>
-                                    <div className="col-sm-3">
-                                        <Field name="descripcion" validate={[requerido, validacionCientoCincuentaCaracteres, minimoTresCaracteres]} component={generarInput} label="Descripcion" />
-                                    </div>
-                                    <div className="col-sm-1" style={{ padding: '15px' }}>
-                                        <Button variant="primary" style={{ fontSize: '14px' }} type='submit'>Editar</Button>{''}
-                                    </div>
-                                    <div className="col-sm-1" style={{ padding: '15px' }}>
-                                        <Button variant="danger" style={{ fontSize: '14px' }} onClick={this.ocultarEditar} >Cancelar</Button>{''}
-                                    </div>
-                                </div>
-                            </form>
-                        </Card.Body>
-                    </Card>
-                </> : <><Card className={"border border-dark text-white"}>
-                    <Card.Header className={"bg-dark"}>
-                        <div style={{ "float": "left" }}>
-                            <FontAwesomeIcon icon={faList} /> Lista de examenes
-                        </div>
-                        <div style={{ "float": "right" }}>
-                            {(editarExamen | examenes.length === 0) & search === '' ?
-                                <> </> :
-                                <InputGroup size="sm">
-                                    <FormControl placeholder="Buscar por nombre" name="search" value={search}
-                                        className={"info-border bg-dark text-white"}
-                                        onChange={this.searchChange} />
-                                    <InputGroup.Append>
-                                        <Button size="sm" variant="outline-info" type="button" onClick={this.searchData}>
-                                            <FontAwesomeIcon icon={faSearch} />
-                                        </Button>
-                                        <Button size="sm" variant="outline-danger" type="button" onClick={this.cancelSearch}>
-                                            <FontAwesomeIcon icon={faTimes} />
-                                        </Button>
-                                    </InputGroup.Append>
-                                </InputGroup>
-                            }
-                        </div>
-                    </Card.Header>
-                    <Card.Body>
-                        {
-                            examenes.length === 0 ?
-                                <Alert variant='info'>
-                                    Sin examenes asociados
-                                    </Alert> : <>
-                                    <Table bordered hover striped>
-                                        <thead className='thead-dark'>
-                                            <tr>
-                                                <th>Codigo</th>
-                                                <th>Nombre</th>
-                                                <th>Descripcion</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {
-                                                examenes.map((book) => (
-                                                    <tr key={book.idExamen}>
-                                                        <td>{book.idExamen}</td>
-                                                        <td>{book.nombre}</td>
-                                                        <td>{book.descripcion}</td>
-                                                        <td>
-                                                            <ButtonGroup>
-                                                                <Button size="sm" variant="outline-info" onClick={this.editConsulta.bind(this, book)}><FontAwesomeIcon icon={faEdit} /></Button>
-                                                                <Button size="sm" variant="outline-danger" onClick={this.deleteExamen.bind(this, book.idExamen)}><FontAwesomeIcon icon={faTrash} /></Button>
-                                                            </ButtonGroup>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            }
-                                        </tbody>
-                                    </Table>
-                                    {/* {consultas.length > 0 ?
-                            <>
-                                <div style={{ "float": "left" ,color:'black'}}>
-                                    Showing Page {currentPage} of {totalPages}
-                                </div>
                                 <div style={{ "float": "right" }}>
-                                    <InputGroup size="sm">
-                                        <InputGroup.Prepend>
-                                            <Button type="button" variant="outline-info" disabled={currentPage === 1 ? true : false}
-                                                onClick={this.firstPage}>
-                                                <FontAwesomeIcon icon={faFastBackward} /> First
-                                        </Button>
-                                            <Button type="button" variant="outline-info" disabled={currentPage === 1 ? true : false}
-                                                onClick={this.prevPage}>
-                                                <FontAwesomeIcon icon={faStepBackward} /> Prev
-                                        </Button>
-                                        </InputGroup.Prepend>
-                                        <FormControl className={"page-num bg-dark"} name="currentPage" value={currentPage}
-                                            onChange={this.changePage} />
-                                        <InputGroup.Append>
-                                            <Button type="button" variant="outline-info" disabled={currentPage === totalPages ? true : false}
-                                                onClick={this.nextPage}>
-                                                <FontAwesomeIcon icon={faStepForward} /> Next
-                                        </Button>
-                                            <Button type="button" variant="outline-info" disabled={currentPage === totalPages ? true : false}
-                                                onClick={this.lastPage}>
-                                                <FontAwesomeIcon icon={faFastForward} /> Last
-                                        </Button>
-                                        </InputGroup.Append>
-                                    </InputGroup>
+                                    {(editarExamen | examenes.length === 0) & search === '' ?
+                                        <> </> :
+                                        <InputGroup size="sm">
+                                            <FormControl placeholder="Buscar por nombre" name="search" value={search}
+                                                className={"info-border bg-dark text-white"}
+                                                onChange={this.searchChange} />
+                                            <InputGroup.Append>
+                                                <Button size="sm" variant="outline-info" type="button" onClick={this.searchData}>
+                                                    <FontAwesomeIcon icon={faSearch} />
+                                                </Button>
+                                                <Button size="sm" variant="outline-danger" type="button" onClick={this.cancelSearch}>
+                                                    <FontAwesomeIcon icon={faTimes} />
+                                                </Button>
+                                            </InputGroup.Append>
+                                        </InputGroup>
+                                    }
                                 </div>
-                            </>
-                            : null
-                        } */}
+                            </Card.Header>
+                            <Card.Body>
+                                {
+                                    examenes.length === 0 ?
+                                        <Alert variant='info'>
+                                            Sin examenes asociados
+                                        </Alert> : <>
+                                            <Table bordered hover striped>
+                                                <thead className='thead-dark'>
+                                                    <tr>
+                                                        <th>Codigo</th>
+                                                        <th>Nombre</th>
+                                                        <th>Descripcion</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {
+                                                        examenes.map((book) => (
+                                                            <tr key={book.idExamen}>
+                                                                <td>{book.idExamen}</td>
+                                                                <td>{book.nombre}</td>
+                                                                <td>{book.descripcion}</td>
+                                                                <td>
+                                                                    <ButtonGroup>
+                                                                        <Button size="sm" variant="outline-info" onClick={this.editConsulta.bind(this, book)}><FontAwesomeIcon icon={faEdit} /></Button>
+                                                                        <Button size="sm" variant="outline-danger" onClick={this.deleteExamen.bind(this, book.idExamen)}><FontAwesomeIcon icon={faTrash} /></Button>
+                                                                    </ButtonGroup>
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    }
+                                                </tbody>
+                                            </Table>
+                                            {/* {consultas.length > 0 ?
+                                <>
+                                    <div style={{ "float": "left" ,color:'black'}}>
+                                        Showing Page {currentPage} of {totalPages}
+                                    </div>
+                                    <div style={{ "float": "right" }}>
+                                        <InputGroup size="sm">
+                                            <InputGroup.Prepend>
+                                                <Button type="button" variant="outline-info" disabled={currentPage === 1 ? true : false}
+                                                    onClick={this.firstPage}>
+                                                    <FontAwesomeIcon icon={faFastBackward} /> First
+                                            </Button>
+                                                <Button type="button" variant="outline-info" disabled={currentPage === 1 ? true : false}
+                                                    onClick={this.prevPage}>
+                                                    <FontAwesomeIcon icon={faStepBackward} /> Prev
+                                            </Button>
+                                            </InputGroup.Prepend>
+                                            <FormControl className={"page-num bg-dark"} name="currentPage" value={currentPage}
+                                                onChange={this.changePage} />
+                                            <InputGroup.Append>
+                                                <Button type="button" variant="outline-info" disabled={currentPage === totalPages ? true : false}
+                                                    onClick={this.nextPage}>
+                                                    <FontAwesomeIcon icon={faStepForward} /> Next
+                                            </Button>
+                                                <Button type="button" variant="outline-info" disabled={currentPage === totalPages ? true : false}
+                                                    onClick={this.lastPage}>
+                                                    <FontAwesomeIcon icon={faFastForward} /> Last
+                                            </Button>
+                                            </InputGroup.Append>
+                                        </InputGroup>
+                                    </div>
                                 </>
-                        }
+                                : null
+                            } */}
+                                        </>
+                                }
 
-                    </Card.Body>
-                    <Card.Footer>
-                        <div style={{ "float": "right", color: 'black' }}>
-                            <PopUpExamenRegistro />
-                        </div>
-                    </Card.Footer>
-                </Card>
-                    </>}
-                <Snackbar open={this.state.open} autoHideDuration={6000} onClose={this.handleClose}>
-                    <Mensaje variant="filled" severity={this.state.severidad}>
-                        {this.state.mensaje}
-                    </Mensaje>
-                </Snackbar>
-            </div >
+                            </Card.Body>
+                            <Card.Footer>
+                                <div style={{ "float": "right", color: 'black' }}>
+                                    <PopUpExamenRegistro />
+                                </div>
+                            </Card.Footer>
+                        </Card>
+                            </>}
+                        <Snackbar open={this.state.open} autoHideDuration={6000} onClose={this.handleClose}>
+                            <Mensaje variant="filled" severity={this.state.severidad}>
+                                {this.state.mensaje}
+                            </Mensaje>
+                        </Snackbar>
+                    </div >
+                    :
+                    <Mensaje draggable={true} style={{ fontSize: '13px' }} severity={'error'}>No tiene suficientes permisos</Mensaje>
+                }
+            </>
         );
     }
 }

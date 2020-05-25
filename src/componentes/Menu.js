@@ -19,6 +19,10 @@ import LocalHospitalIcon from '@material-ui/icons/LocalHospital';
 import BallotIcon from '@material-ui/icons/Ballot';
 import Paper from '@material-ui/core/Paper';
 import PersonPinIcon from '@material-ui/icons/PersonPin';
+import Button from '@material-ui/core/Button';
+import { enviroment } from '../utilitario/Configuracion.js';
+import axios from 'axios';
+
 
 const drawerWidth = 240;
 
@@ -92,15 +96,26 @@ export default function PersistentDrawerLeft({ children, ...rest }) {
         setOpen(false);
     };
 
-    const handleClick=()=> {
-        window.location.href = "/";
+    const handleClick = () => {
+        window.location.href = "/consultas";
     }
 
-    const handleClickDos=()=> {
+    const cerrarSesion = () => {
+        axios.get(`${enviroment.HOST}/cerrarSesion/anular/${sessionStorage.getItem('access-token')}`)
+            .then(response => {
+                window.location.href = "/";
+                sessionStorage.clear();
+            }).catch((error) => {
+                window.location.href = "/";
+                sessionStorage.clear();
+            });
+    }
+
+    const handleClickDos = () => {
         window.location.href = "/examenes";
     }
 
-    const handleClickTres=()=> {
+    const handleClickTres = () => {
         window.location.href = "/medicos";
     }
 
@@ -108,7 +123,7 @@ export default function PersistentDrawerLeft({ children, ...rest }) {
         <div className={classes.root}>
             <CssBaseline />
             <AppBar
-            style={{background:'#1282A2'}}
+                style={{ background: '#1282A2' }}
                 position="fixed"
                 className={clsx(classes.appBar, {
                     [classes.appBarShift]: open,
@@ -127,6 +142,14 @@ export default function PersistentDrawerLeft({ children, ...rest }) {
                     <Typography variant="h6" noWrap>
                         Clinica
           </Typography>
+                    <div style={{ paddingLeft: '80%' }}>
+                        <Button
+                            onClick={cerrarSesion}
+                            variant="contained"
+                            color="danger"
+                            style={{ background: '#ef141e', fontSize: "14px", fontFamily: "sans-serif", color: 'white', textTransform: "none" }}
+                        >Cerrar sesion</Button>
+                    </div>
                 </Toolbar>
             </AppBar>
             <Drawer
@@ -145,19 +168,19 @@ export default function PersistentDrawerLeft({ children, ...rest }) {
                 </div>
                 <Divider />
                 <List>
-                    <ListItem button onClick={handleClick}> 
+                    <ListItem button onClick={handleClick}>
                         <ListItemIcon>
                             <LocalHospitalIcon />
                         </ListItemIcon>
                         <ListItemText primary="Consulta" />
                     </ListItem>
-                    <ListItem button onClick={handleClickDos}> 
+                    <ListItem button onClick={handleClickDos}>
                         <ListItemIcon>
                             <BallotIcon />
                         </ListItemIcon>
                         <ListItemText primary="Examenes" />
                     </ListItem>
-                    <ListItem button onClick={handleClickTres}> 
+                    <ListItem button onClick={handleClickTres}>
                         <ListItemIcon>
                             <PersonPinIcon />
                         </ListItemIcon>

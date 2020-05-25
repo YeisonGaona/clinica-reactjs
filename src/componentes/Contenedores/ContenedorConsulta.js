@@ -21,7 +21,7 @@ import PopUp from '../Consulta/PopUpConsulta.js';
 
 //redux
 import { asignarConsultaEditar, filtrarConsultas, actionGet as actionGetConsultas } from '../../actions/actionConsulta.js';
-import { actionGet } from '../../actions/actionMedico.js';
+import { actionGetFormulario } from '../../actions/actionMedico.js';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 
@@ -44,9 +44,21 @@ class ContenedorConsulta extends React.Component {
 
 
     componentDidMount() {
-        this.props.actionGet();
+        if (sessionStorage.getItem('access-token') === null) {
+            this.props.history.push('/');
+        }
+        this.props.actionGetFormulario();
     }
 
+    componentDidUpdate() {
+        if (sessionStorage.getItem('access-token') === null) {
+            this.props.history.push('/');
+        }
+        if(this.props.mensajeConsulta==='Token invalido'){
+            this.props.history.push('/');
+            sessionStorage.clear();
+        }
+    }
 
     habilitarEditarConsulta = (consultaEditar) => {
         if (!this.state.editarHabilitado) {
@@ -98,6 +110,7 @@ class ContenedorConsulta extends React.Component {
         this.setState({ "search": '' });
     };
 
+
     searchData = () => {
         const { search } = this.state;
         var difficult_tasks = [];
@@ -112,92 +125,102 @@ class ContenedorConsulta extends React.Component {
 
     render() {
         const { search, mensaje, open, severidad, editarHabilitado, verConsulta, verDetalle, verExamen } = this.state;
-        const { medicos, detallesExamen, consultas } = this.props;
+        const { medicos, detallesExamen, consultas, mensajeConsulta } = this.props;
         return (
-            <div>
-                <ExpansionPanel expanded={verConsulta} onChange={this.cambiarVerConsulta}>
-                    <ExpansionPanelSummary
-                        expandIcon={<ExpandMoreIcon />}
-                        aria-controls="panel2a-content"
-                        id="panel2a-header">
-                        <Typography style={{ fontSize: '15px' }}>Consultas</Typography>
-                    </ExpansionPanelSummary>
-                    <ExpansionPanelDetails>
-                        <Card className={"border border-dark text-white"} style={{ width: '100%' }}>
-                            <Card.Header className={"bg-dark"}>
-                                <div style={{ "float": "left" }}>
-                                    <FontAwesomeIcon icon={editarHabilitado ? faEdit : faList} />
-                                    {
-                                        editarHabilitado ?
-                                            <> Editar consulta</> :
-                                            <> Lista de consultas</>
-                                    }
-                                </div>
-                                <div style={{ "float": "right" }}>
-                                    {(editarHabilitado | consultas.length === 0) & search === '' ?
-                                        <> </> :
-                                        <InputGroup size="sm">
-                                            <FormControl placeholder="Buscar consulta por medico" name="search" value={search}
-                                                className={"info-border bg-dark text-white"}
-                                                onChange={this.searchChange} />
-                                            <InputGroup.Append>
-                                                <Button size="sm" variant="outline-info" type="button" onClick={this.searchData}>
-                                                    <FontAwesomeIcon icon={faSearch} />
-                                                </Button>
-                                                <Button size="sm" variant="outline-danger" type="button" onClick={this.cancelSearch}>
-                                                    <FontAwesomeIcon icon={faTimes} />
-                                                </Button>
-                                            </InputGroup.Append>
-                                        </InputGroup>
-                                    }
-                                </div>
-                            </Card.Header>
-                            <Card.Body>
-                                <>
-                                    <EditarConsulta medicos={medicos} editarHabilitado={editarHabilitado} habilitarEditarConsulta={this.habilitarEditarConsulta} />
-                                </>
-                                <>
-                                    <TablaConsulta editarHabilitado={editarHabilitado} habilitarEditarConsulta={this.habilitarEditarConsulta} cambiarVerDetalle={this.cambiarVerDetalle} />
-                                </>
+            <>
+                {mensajeConsulta === 'Sin permiso' ?
+                    <Mensaje draggable={true} style={{ fontSize: '13px' }} severity={'error'}>No tiene suficientes permisos</Mensaje>
+                    :
+                    <div>
 
-                            </Card.Body>
-                            <Card.Footer>
-                                <div style={{ "float": "right", color: 'black' }}>
-                                    <PopUp />
-                                </div>
-                            </Card.Footer>
-                        </Card>
-                    </ExpansionPanelDetails>
-                </ExpansionPanel>
+                        <ExpansionPanel expanded={verConsulta} onChange={this.cambiarVerConsulta}>
+                            <ExpansionPanelSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                aria-controls="panel2a-content"
+                                id="panel2a-header">
+                                <Typography style={{ fontSize: '15px' }}>Consultas</Typography>
+                            </ExpansionPanelSummary>
+                            <ExpansionPanelDetails>
+                                <Card className={"border border-dark text-white"} style={{ width: '100%' }}>
+                                    <Card.Header className={"bg-dark"}>
+                                        <div style={{ "float": "left" }}>
+                                            <FontAwesomeIcon icon={editarHabilitado ? faEdit : faList} />
+                                            {
+                                                editarHabilitado ?
+                                                    <> Editar consulta</> :
+                                                    <> Lista de consultas</>
+                                            }
+                                        </div>
+                                        <div style={{ "float": "right" }}>
+                                            {(editarHabilitado | consultas.length === 0) & search === '' ?
+                                                <> </> :
+                                                <InputGroup size="sm">
+                                                    <FormControl placeholder="Buscar consulta por medico" name="search" value={search}
+                                                        className={"info-border bg-dark text-white"}
+                                                        onChange={this.searchChange} />
+                                                    <InputGroup.Append>
+                                                        <Button size="sm" variant="outline-info" type="button" onClick={this.searchData}>
+                                                            <FontAwesomeIcon icon={faSearch} />
+                                                        </Button>
+                                                        <Button size="sm" variant="outline-danger" type="button" onClick={this.cancelSearch}>
+                                                            <FontAwesomeIcon icon={faTimes} />
+                                                        </Button>
+                                                    </InputGroup.Append>
+                                                </InputGroup>
+                                            }
+                                        </div>
+                                    </Card.Header>
+                                    <Card.Body>
+                                        <>
+                                            <EditarConsulta medicos={medicos} editarHabilitado={editarHabilitado} habilitarEditarConsulta={this.habilitarEditarConsulta} />
+                                        </>
+                                        <>
+                                            <TablaConsulta editarHabilitado={editarHabilitado} habilitarEditarConsulta={this.habilitarEditarConsulta} cambiarVerDetalle={this.cambiarVerDetalle} />
+                                        </>
 
-                <ExpansionPanel expanded={verDetalle} disabled={detallesExamen.consulta.id === 0 ? true : false} onChange={this.cambiarVerDetalle} >
-                    <ExpansionPanelSummary
-                        expandIcon={<ExpandMoreIcon />}
-                        aria-controls="panel2a-content"
-                        id="panel2a-header">
-                        <Typography style={{ fontSize: '15px' }}>Detalles de consulta</Typography>
-                    </ExpansionPanelSummary>
-                    <ExpansionPanelDetails>
-                        <ContenedorDetalleConsulta />
-                    </ExpansionPanelDetails>
-                </ExpansionPanel>
-                <ExpansionPanel expanded={verExamen} disabled={detallesExamen.consulta.id === 0 ? true : false} onChange={this.cambiarVerExamen} >
-                    <ExpansionPanelSummary
-                        expandIcon={<ExpandMoreIcon />}
-                        aria-controls="panel2a-content"
-                        id="panel2a-header">
-                        <Typography style={{ fontSize: '15px' }}>Examen</Typography>
-                    </ExpansionPanelSummary>
-                    <ExpansionPanelDetails>
-                        <ContenedorExamen />
-                    </ExpansionPanelDetails>
-                </ExpansionPanel>
-                <Snackbar open={open} autoHideDuration={6000} onClose={this.handleClose}>
-                    <Mensaje variant="filled" severity={severidad}>
-                        {mensaje}
-                    </Mensaje>
-                </Snackbar>
-            </div >
+                                    </Card.Body>
+                                    <Card.Footer>
+                                        <div style={{ "float": "right", color: 'black' }}>
+                                            <PopUp />
+                                        </div>
+                                    </Card.Footer>
+                                </Card>
+                            </ExpansionPanelDetails>
+                        </ExpansionPanel>
+
+                        <ExpansionPanel expanded={verDetalle} disabled={detallesExamen.consulta.id === 0 ? true : false} onChange={this.cambiarVerDetalle} >
+                            <ExpansionPanelSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                aria-controls="panel2a-content"
+                                id="panel2a-header">
+                                <Typography style={{ fontSize: '15px' }}>Detalles de consulta</Typography>
+                            </ExpansionPanelSummary>
+                            <ExpansionPanelDetails>
+                                <ContenedorDetalleConsulta />
+                            </ExpansionPanelDetails>
+                        </ExpansionPanel>
+                        <ExpansionPanel expanded={verExamen} disabled={detallesExamen.consulta.id === 0 ? true : false} onChange={this.cambiarVerExamen} >
+                            <ExpansionPanelSummary
+                                expandIcon={<ExpandMoreIcon />}
+                                aria-controls="panel2a-content"
+                                id="panel2a-header">
+                                <Typography style={{ fontSize: '15px' }}>Examen</Typography>
+                            </ExpansionPanelSummary>
+                            <ExpansionPanelDetails>
+                                <ContenedorExamen />
+                            </ExpansionPanelDetails>
+                        </ExpansionPanel>
+                        <Snackbar open={open} autoHideDuration={6000} onClose={this.handleClose}>
+                            <Mensaje variant="filled" severity={severidad}>
+                                {mensaje}
+                            </Mensaje>
+                        </Snackbar>
+                    </div >
+
+                }
+
+            </>
+
         );
     }
 }
@@ -208,8 +231,9 @@ function mapStateToProps(state) {
         medicos: state.medico.medicos,
         detallesExamen: state.detalle.detallesExamen,
         consultas: state.consulta.consultas,
+        mensajeConsulta: state.consulta.mensaje
     }
 }
 
 
-export default withRouter(connect(mapStateToProps, { asignarConsultaEditar, filtrarConsultas, actionGet, actionGetConsultas })(ContenedorConsulta));
+export default withRouter(connect(mapStateToProps, { asignarConsultaEditar, filtrarConsultas, actionGetFormulario, actionGetConsultas })(ContenedorConsulta));

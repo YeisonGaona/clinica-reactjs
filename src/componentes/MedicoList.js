@@ -35,6 +35,7 @@ class ConsultaList extends React.Component {
     state = {
         habilitado: false,
         recuperar: false,
+        sinPermiso: false,
         severidad: 'error',
         detallesConsulta: [],
         open: false,
@@ -53,6 +54,9 @@ class ConsultaList extends React.Component {
 
 
     componentDidMount() {
+        if (sessionStorage.getItem('access-token') === null) {
+            this.props.history.push('/');
+        }
         this.props.actionGet();
     }
 
@@ -116,6 +120,9 @@ class ConsultaList extends React.Component {
 
 
     componentDidUpdate() {
+        if (sessionStorage.getItem('access-token') === null) {
+            this.props.history.push('/');
+        }
         switch (this.props.mensaje) {
             case 'Medico registrado':
                 if (this.state.severidad !== 'success') {
@@ -186,6 +193,15 @@ class ConsultaList extends React.Component {
                 this.setState({ mensaje: 'Ocurrio un error' })
                 this.props.actionMensajeRegistrar('');
                 break;
+            case 'Sin permiso':
+                if (!this.state.sinPermiso) {
+                    this.setState({ sinPermiso: true });
+                }
+                break;
+            case 'Token invalido':
+                this.props.history.push('/');
+                sessionStorage.clear();
+                break;
             default:
                 break;
         }
@@ -195,102 +211,104 @@ class ConsultaList extends React.Component {
 
 
     render() {
-        const { search, editarMedico } = this.state;
+        const { search, editarMedico, sinPermiso } = this.state;
         const { medicos } = this.props;
 
         return (
-            <div>
-                {editarMedico ? <>
-                    <Card className={"border border-dark text-white"}>
-                        <Card.Header className={"bg-dark"}>
-                            <div style={{ "float": "left" }}>
-                                <FontAwesomeIcon icon={faList} /> Editar medico
+            <>
+                {!sinPermiso ?
+                    <div>
+                        {editarMedico ? <>
+                            <Card className={"border border-dark text-white"}>
+                                <Card.Header className={"bg-dark"}>
+                                    <div style={{ "float": "left" }}>
+                                        <FontAwesomeIcon icon={faList} /> Editar medico
                             </div>
-                        </Card.Header>
-                        <Card.Body>
-                            <form onSubmit={this.props.handleSubmit(this.handleSubmitExamen)}>
-                                <div className="row">
-                                    <div className="col-sm-3">
-                                        <Field name="id" disabled={true} validate={[requerido]} component={generarInput} label="Codigo" />
-                                    </div>
-                                    <div className="col-sm-3">
-                                        <Field name="cedula" type='number' validate={[requerido, minimoTresCaracteres, validacionQuinceCaracteres]} component={generarInput} label='Cedula' />
-                                    </div>
-                                    <div className="col-sm-3">
-                                        <Field name="nombreMedico" validate={[requerido, minimoTresCaracteres, validacionCincuentaCaracteres]} component={generarInput} label="Nombre" />
-                                    </div>
-                                    <div className="col-sm-3">
-                                        <Field name="direccion" validate={[requerido, validacionCincuentaCaracteres, minimoTresCaracteres]} component={generarInput} label="Direccion" />
-                                    </div>
-                                    <div className="col-sm-1" style={{ padding: '15px' }}>
-                                        <Button variant="primary" style={{ fontSize: '14px' }} type='submit'>Editar</Button>{''}
-                                    </div>
-                                    <div className="col-sm-1" style={{ padding: '15px' }}>
-                                        <Button variant="danger" style={{ fontSize: '14px' }} onClick={this.ocultarEditar} >Cancelar</Button>{''}
-                                    </div>
-                                </div>
-                            </form>
-                        </Card.Body>
-                    </Card>
-                </> : <><Card className={"border border-dark text-white"}>
-                    <Card.Header className={"bg-dark"}>
-                        <div style={{ "float": "left" }}>
-                            <FontAwesomeIcon icon={faList} /> Lista de medicos
+                                </Card.Header>
+                                <Card.Body>
+                                    <form onSubmit={this.props.handleSubmit(this.handleSubmitExamen)}>
+                                        <div className="row">
+                                            <div className="col-sm-3">
+                                                <Field name="id" disabled={true} validate={[requerido]} component={generarInput} label="Codigo" />
+                                            </div>
+                                            <div className="col-sm-3">
+                                                <Field name="cedula" type='number' validate={[requerido, minimoTresCaracteres, validacionQuinceCaracteres]} component={generarInput} label='Cedula' />
+                                            </div>
+                                            <div className="col-sm-3">
+                                                <Field name="nombreMedico" validate={[requerido, minimoTresCaracteres, validacionCincuentaCaracteres]} component={generarInput} label="Nombre" />
+                                            </div>
+                                            <div className="col-sm-3">
+                                                <Field name="direccion" validate={[requerido, validacionCincuentaCaracteres, minimoTresCaracteres]} component={generarInput} label="Direccion" />
+                                            </div>
+                                            <div className="col-sm-1" style={{ padding: '15px' }}>
+                                                <Button variant="primary" style={{ fontSize: '14px' }} type='submit'>Editar</Button>{''}
+                                            </div>
+                                            <div className="col-sm-1" style={{ padding: '15px' }}>
+                                                <Button variant="danger" style={{ fontSize: '14px' }} onClick={this.ocultarEditar} >Cancelar</Button>{''}
+                                            </div>
+                                        </div>
+                                    </form>
+                                </Card.Body>
+                            </Card>
+                        </> : <><Card className={"border border-dark text-white"}>
+                            <Card.Header className={"bg-dark"}>
+                                <div style={{ "float": "left" }}>
+                                    <FontAwesomeIcon icon={faList} /> Lista de medicos
                         </div>
-                        <div style={{ "float": "right" }}>
-                            {(editarMedico | medicos.length === 0) & search === '' ?
-                                <> </>
-                                :
-                                <InputGroup size="sm">
-                                    <FormControl placeholder="Buscar por nombre" name="search" value={search}
-                                        className={"info-border bg-dark text-white"}
-                                        onChange={this.searchChange} />
-                                    <InputGroup.Append>
-                                        <Button size="sm" variant="outline-info" type="button" onClick={this.searchData}>
-                                            <FontAwesomeIcon icon={faSearch} />
-                                        </Button>
-                                        <Button size="sm" variant="outline-danger" type="button" onClick={this.cancelSearch}>
-                                            <FontAwesomeIcon icon={faTimes} />
-                                        </Button>
-                                    </InputGroup.Append>
-                                </InputGroup>
-                            }
+                                <div style={{ "float": "right" }}>
+                                    {(editarMedico | medicos.length === 0) & search === '' ?
+                                        <> </>
+                                        :
+                                        <InputGroup size="sm">
+                                            <FormControl placeholder="Buscar por nombre" name="search" value={search}
+                                                className={"info-border bg-dark text-white"}
+                                                onChange={this.searchChange} />
+                                            <InputGroup.Append>
+                                                <Button size="sm" variant="outline-info" type="button" onClick={this.searchData}>
+                                                    <FontAwesomeIcon icon={faSearch} />
+                                                </Button>
+                                                <Button size="sm" variant="outline-danger" type="button" onClick={this.cancelSearch}>
+                                                    <FontAwesomeIcon icon={faTimes} />
+                                                </Button>
+                                            </InputGroup.Append>
+                                        </InputGroup>
+                                    }
 
-                        </div>
-                    </Card.Header>
-                    <Card.Body>
-                        {medicos.length === 0 ?
-                            <Alert variant='info'>
-                                Sin medicos registrados
+                                </div>
+                            </Card.Header>
+                            <Card.Body>
+                                {medicos.length === 0 ?
+                                    <Alert variant='info'>
+                                        Sin medicos registrados
                                          </Alert> :
-                            <>
-                                <Table bordered hover striped>
-                                    <thead className='thead-dark'>
-                                        <tr>
-                                            <th>Cedula</th>
-                                            <th>Nombre</th>
-                                            <th>Direccion</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {
-                                            medicos.map((book) => (
-                                                <tr key={book.cedula}>
-                                                    <td>{book.cedula}</td>
-                                                    <td>{book.nombreMedico}</td>
-                                                    <td>{book.direccion.detalle}</td>
-                                                    <td>
-                                                        <ButtonGroup>
-                                                            <Button size="sm" variant="outline-info" onClick={this.editConsulta.bind(this, book)}><FontAwesomeIcon icon={faEdit} /></Button>
-                                                            <Button size="sm" variant="outline-danger" onClick={this.deleteExamen.bind(this, book.id)}><FontAwesomeIcon icon={faTrash} /></Button>
-                                                        </ButtonGroup>
-                                                    </td>
+                                    <>
+                                        <Table bordered hover striped>
+                                            <thead className='thead-dark'>
+                                                <tr>
+                                                    <th>Cedula</th>
+                                                    <th>Nombre</th>
+                                                    <th>Direccion</th>
                                                 </tr>
-                                            ))
-                                        }
-                                    </tbody>
-                                </Table>
-                                {/* {consultas.length > 0 ?
+                                            </thead>
+                                            <tbody>
+                                                {
+                                                    medicos.map((book) => (
+                                                        <tr key={book.cedula}>
+                                                            <td>{book.cedula}</td>
+                                                            <td>{book.nombreMedico}</td>
+                                                            <td>{book.direccion.detalle}</td>
+                                                            <td>
+                                                                <ButtonGroup>
+                                                                    <Button size="sm" variant="outline-info" onClick={this.editConsulta.bind(this, book)}><FontAwesomeIcon icon={faEdit} /></Button>
+                                                                    <Button size="sm" variant="outline-danger" onClick={this.deleteExamen.bind(this, book.id)}><FontAwesomeIcon icon={faTrash} /></Button>
+                                                                </ButtonGroup>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                }
+                                            </tbody>
+                                        </Table>
+                                        {/* {consultas.length > 0 ?
                             <>
                                 <div style={{ "float": "left" ,color:'black'}}>
                                     Showing Page {currentPage} of {totalPages}
@@ -324,22 +342,28 @@ class ConsultaList extends React.Component {
                             </>
                             : null
                         } */}
-                            </>
-                        }
-                    </Card.Body>
-                    <Card.Footer>
-                        <div style={{ "float": "right", color: 'black' }}>
-                            <PopUpMedico />
-                        </div>
-                    </Card.Footer>
-                </Card>
-                    </>}
-                <Snackbar open={this.state.open} autoHideDuration={6000} onClose={this.handleClose}>
-                    <Mensaje variant="filled" severity={this.state.severidad}>
-                        {this.state.mensaje}
-                    </Mensaje>
-                </Snackbar>
-            </div >
+                                    </>
+                                }
+                            </Card.Body>
+                            <Card.Footer>
+                                <div style={{ "float": "right", color: 'black' }}>
+                                    <PopUpMedico />
+                                </div>
+                            </Card.Footer>
+                        </Card>
+                            </>}
+                        <Snackbar open={this.state.open} autoHideDuration={6000} onClose={this.handleClose}>
+                            <Mensaje variant="filled" severity={this.state.severidad}>
+                                {this.state.mensaje}
+                            </Mensaje>
+                        </Snackbar>
+                    </div >
+
+                    :
+                    <Mensaje draggable={true} style={{ fontSize: '13px' }} severity={'error'}>No tiene suficientes permisos</Mensaje>
+
+                }
+            </>
         );
     }
 }

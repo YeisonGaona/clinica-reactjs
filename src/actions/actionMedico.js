@@ -4,6 +4,8 @@ export const MENSAJE_REGISTRAR = 'MENSAJE_REGISTRAR';
 export const GET_MEDICO = 'GET_MEDICO';
 export const MEDICO_EDITAR = 'MEDICO_EDITAR';
 
+
+
 export function actionMensajeRegistrar(mensaje) {
     return (dispatch, getState) => {
         dispatch({
@@ -14,7 +16,6 @@ export function actionMensajeRegistrar(mensaje) {
 }
 
 export function asignarMedicoEditar(medico) {
-    console.log('obj editar', medico);
     return (dispatch, getState) => {
         dispatch({
             type: MEDICO_EDITAR,
@@ -27,7 +28,7 @@ export function filtrarMedicos(medicosFiltrados) {
     return (dispatch, getState) => {
         dispatch({
             type: GET_MEDICO,
-            respuesta:medicosFiltrados
+            respuesta: medicosFiltrados
         });
     }
 }
@@ -38,6 +39,7 @@ export function filtrarMedicos(medicosFiltrados) {
 
 export function actionAgregarMedico(medico) {
     const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
         'Content-Type': 'application/json'
     }
     return (dispatch, getState) => {
@@ -48,22 +50,46 @@ export function actionAgregarMedico(medico) {
                     mensaje: 'Medico registrado'
                 });
             }).catch((error) => {
-                if (error.request.status === 400) {
+                if (error.request.response === '') {
                     dispatch({
                         type: MENSAJE_REGISTRAR,
-                        mensaje: 'Datos ingresados en formato incorrecto'
+                        mensaje: 'Servidor fuera de servicio temporalmente'
                     });
                 } else {
-                    if (error.request.status === 409) {
-                        dispatch({
-                            type: MENSAJE_REGISTRAR,
-                            mensaje: 'Cedula registrada'
-                        });
-                    } else {
-                        dispatch({
-                            type: MENSAJE_REGISTRAR,
-                            mensaje: 'Ocurrio un error'
-                        });
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 400:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Datos ingresados en formato incorrecto'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            if (respuesta.error === 'invalid_token') {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Token invalido'
+                                });
+                                break;
+                            } else {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Servidor fuera de servicio temporalmente'
+                                });
+                                break;
+                            }
                     }
                 }
             });
@@ -74,6 +100,7 @@ export function actionAgregarMedico(medico) {
 
 export function actionEditarExamen(medico) {
     const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
         'Content-Type': 'application/json'
     }
     return (dispatch, getState) => {
@@ -84,22 +111,46 @@ export function actionEditarExamen(medico) {
                     mensaje: 'Medico modificado'
                 });
             }).catch((error) => {
-                if (error.request.status === 400) {
+                if (error.request.response === '') {
                     dispatch({
                         type: MENSAJE_REGISTRAR,
-                        mensaje: 'Datos ingresados en formato incorrecto'
+                        mensaje: 'Servidor fuera de servicio temporalmente'
                     });
                 } else {
-                    if (error.request.status === 409) {
-                        dispatch({
-                            type: MENSAJE_REGISTRAR,
-                            mensaje: 'Cedula registrada'
-                        });
-                    }else{
-                        dispatch({
-                            type: MENSAJE_REGISTRAR,
-                            mensaje: 'Ocurrio un error'
-                        });
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 400:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Datos ingresados en formato incorrecto'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            if (respuesta.error === 'invalid_token') {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Token invalido'
+                                });
+                                break;
+                            } else {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Servidor fuera de servicio temporalmente'
+                                });
+                                break;
+                            }
                     }
                 }
             });
@@ -108,6 +159,7 @@ export function actionEditarExamen(medico) {
 //actionEliminarMedico
 export function actionEliminarMedico(idMedico) {
     const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
         'Content-Type': 'application/json'
     }
     return (dispatch, getState) => {
@@ -124,16 +176,40 @@ export function actionEliminarMedico(idMedico) {
                         mensaje: 'Servidor fuera de servicio temporalmente'
                     });
                 } else {
-                    if (error.request.status === 409) {
-                        dispatch({
-                            type: MENSAJE_REGISTRAR,
-                            mensaje: 'Medico asociado'
-                        });
-                    } else {
-                        dispatch({
-                            type: MENSAJE_REGISTRAR,
-                            mensaje: 'Servidor fuera de servicio temporalmente'
-                        });
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 400:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Datos ingresados en formato incorrecto'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            if (respuesta.error === 'invalid_token') {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Token invalido'
+                                });
+                                break;
+                            } else {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Servidor fuera de servicio temporalmente'
+                                });
+                                break;
+                            }
                     }
                 }
             });
@@ -142,8 +218,12 @@ export function actionEliminarMedico(idMedico) {
 
 
 export function actionGet() {
+    const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
+        'Content-Type': 'application/json'
+    }
     return (dispatch, getState) => {
-        axios.get(`http://localhost:8081/medicos/listar`)
+        axios.get(`http://localhost:8081/medicos/listar`, { headers: headers })
             .then(response => {
                 dispatch({
                     type: GET_MEDICO,
@@ -156,11 +236,99 @@ export function actionGet() {
                         mensaje: 'Servidor fuera de servicio temporalmente'
                     });
                 } else {
-                    if (error.request) {
-                        dispatch({
-                            type: MENSAJE_REGISTRAR,
-                            mensaje: 'Servidor fuera de servicio temporalmente'
-                        });
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 400:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Datos ingresados en formato incorrecto'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            if (respuesta.error === 'invalid_token') {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Token invalido'
+                                });
+                                break;
+                            } else {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Servidor fuera de servicio temporalmente'
+                                });
+                                break;
+                            }
+                    }
+                }
+            });
+    };
+}
+
+export function actionGetFormulario() {
+    const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
+        'Content-Type': 'application/json'
+    }
+    return (dispatch, getState) => {
+        axios.get(`http://localhost:8081/medicos/listarFormulario`, { headers: headers })
+            .then(response => {
+                dispatch({
+                    type: GET_MEDICO,
+                    respuesta: response.data
+                });
+            }).catch((error) => {
+                if (error.request.response === '') {
+                    dispatch({
+                        type: MENSAJE_REGISTRAR,
+                        mensaje: 'Servidor fuera de servicio temporalmente'
+                    });
+                } else {
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 400:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Datos ingresados en formato incorrecto'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            if (respuesta.error === 'invalid_token') {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Token invalido'
+                                });
+                                break;
+                            } else {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Servidor fuera de servicio temporalmente'
+                                });
+                                break;
+                            }
                     }
                 }
             });

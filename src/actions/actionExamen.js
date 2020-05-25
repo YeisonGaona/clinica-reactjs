@@ -91,8 +91,12 @@ export function actionExamenRecuperar(examen) {
 
 
 export function actionGet() {
+    const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
+        'Content-Type': 'application/json'
+    }
     return (dispatch, getState) => {
-        axios.get(`http://localhost:8081/examenes/listar`)
+        axios.get(`http://localhost:8081/examenes/listar`,{ headers: headers })
             .then(response => {
                 dispatch({
                     type: GET_EXAMEN,
@@ -105,11 +109,71 @@ export function actionGet() {
                         mensaje: 'Servidor fuera de servicio temporalmente'
                     });
                 } else {
-                    if (error.request) {
-                        dispatch({
-                            type: MENSAJE_REGISTRAR,
-                            mensaje: 'Servidor fuera de servicio temporalmente'
-                        });
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Servidor fuera de servicio temporalmente'
+                            });
+                            break;
+                    }
+                }
+            });
+    };
+}
+
+export function actionGetFormulario() {
+    const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
+        'Content-Type': 'application/json'
+    }
+    return (dispatch, getState) => {
+        axios.get(`http://localhost:8081/examenes/listarFormulario`,{ headers: headers })
+            .then(response => {
+                dispatch({
+                    type: GET_EXAMEN,
+                    respuesta: response.data
+                });
+            }).catch((error) => {
+                if (error.request.response === '') {
+                    dispatch({
+                        type: MENSAJE_REGISTRAR,
+                        mensaje: 'Servidor fuera de servicio temporalmente'
+                    });
+                } else {
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Servidor fuera de servicio temporalmente'
+                            });
+                            break;
                     }
                 }
             });
@@ -118,6 +182,7 @@ export function actionGet() {
 
 export function actionEditarExamen(examen) {
     const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
         'Content-Type': 'application/json'
     }
     return (dispatch, getState) => {
@@ -128,24 +193,59 @@ export function actionEditarExamen(examen) {
                     mensaje: 'Examen modificado'
                 });
             }).catch((error) => {
-                if (error.request.status === 400) {
+                if (error.request.response === '') {
                     dispatch({
                         type: MENSAJE_REGISTRAR,
-                        mensaje: 'Datos ingresados en formato incorrecto'
+                        mensaje: 'Servidor fuera de servicio temporalmente'
                     });
                 } else {
-                    dispatch({
-                        type: MENSAJE_REGISTRAR,
-                        mensaje: 'Ocurrio un error'
-                    });
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 400:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Datos ingresados en formato incorrecto'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            if (respuesta.error === 'invalid_token') {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Token invalido'
+                                });
+                                break;
+                            } else {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Servidor fuera de servicio temporalmente'
+                                });
+                                break;
+                            }
+                    }
                 }
             });
     }
 }
 
 export function actionGetExamenesNoAsociados(idConsulta) {
+    const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
+        'Content-Type': 'application/json'
+    }
     return (dispatch, getState) => {
-        axios.get(`http://localhost:8081/examenes/listarNoAsociados/${idConsulta}`)
+        axios.get(`http://localhost:8081/examenes/listarNoAsociados/${idConsulta}`,{ headers: headers })
             .then(response => {
                 console.log('respuesta',response.data)
                 dispatch({
@@ -159,11 +259,47 @@ export function actionGetExamenesNoAsociados(idConsulta) {
                         mensaje: 'Servidor fuera de servicio temporalmente'
                     });
                 } else {
-                    if (error.request) {
+                    if (error.request.response === '') {
                         dispatch({
                             type: MENSAJE_REGISTRAR,
                             mensaje: 'Servidor fuera de servicio temporalmente'
                         });
+                    } else {
+                        var respuesta = JSON.parse(error.request.response);
+                        switch (respuesta.status) {
+                            case 401:
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Sin permiso'
+                                });
+                                break;
+                            case 400:
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Datos ingresados en formato incorrecto'
+                                });
+                                break;
+                            case 500:
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Ocurrio un error'
+                                });
+                                break;
+                            default:
+                                if (respuesta.error === 'invalid_token') {
+                                    dispatch({
+                                        type: MENSAJE_REGISTRAR,
+                                        mensaje: 'Token invalido'
+                                    });
+                                    break;
+                                } else {
+                                    dispatch({
+                                        type: MENSAJE_REGISTRAR,
+                                        mensaje: 'Servidor fuera de servicio temporalmente'
+                                    });
+                                    break;
+                                }
+                        }
                     }
                 }
             });
@@ -172,6 +308,7 @@ export function actionGetExamenesNoAsociados(idConsulta) {
 
 export function actionEliminarExamenConsulta(idExamen,idConsulta) {
     const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
         'Content-Type': 'application/json'
     }
     return (dispatch, getState) => {
@@ -188,10 +325,41 @@ export function actionEliminarExamenConsulta(idExamen,idConsulta) {
                         mensaje: 'Servidor fuera de servicio temporalmente'
                     });
                 } else {
-                    dispatch({
-                        type: MENSAJE_REGISTRAR,
-                        mensaje: 'Servidor fuera de servicio temporalmente'
-                    });
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 400:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Datos ingresados en formato incorrecto'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            if (respuesta.error === 'invalid_token') {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Token invalido'
+                                });
+                                break;
+                            } else {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Servidor fuera de servicio temporalmente'
+                                });
+                                break;
+                            }
+                    }
                 }
             });
     }
@@ -199,6 +367,7 @@ export function actionEliminarExamenConsulta(idExamen,idConsulta) {
 
 export function actionEliminarExamen(idExamen) {
     const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
         'Content-Type': 'application/json'
     }
     return (dispatch, getState) => {
@@ -215,16 +384,40 @@ export function actionEliminarExamen(idExamen) {
                         mensaje: 'Servidor fuera de servicio temporalmente'
                     });
                 } else {
-                    if(error.request.status===409){
-                        dispatch({
-                            type: MENSAJE_REGISTRAR,
-                            mensaje: 'Examen asociado'
-                        });
-                    }else{
-                        dispatch({
-                            type: MENSAJE_REGISTRAR,
-                            mensaje: 'Ocurrio un error'
-                        });
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 400:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Datos ingresados en formato incorrecto'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            if (respuesta.error === 'invalid_token') {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Token invalido'
+                                });
+                                break;
+                            } else {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Servidor fuera de servicio temporalmente'
+                                });
+                                break;
+                            }
                     }
                 }
             });
@@ -233,6 +426,7 @@ export function actionEliminarExamen(idExamen) {
 
 export function actionAgregarExamen(examen) {
     const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
         'Content-Type': 'application/json'
     }
     return (dispatch, getState) => {
@@ -243,16 +437,47 @@ export function actionAgregarExamen(examen) {
                     mensaje: 'Examen registrado'
                 });
             }).catch((error) => {
-                if (error.request.status === 400) {
+                if (error.request.response === '') {
                     dispatch({
                         type: MENSAJE_REGISTRAR,
-                        mensaje: 'Datos ingresados en formato incorrecto'
+                        mensaje: 'Servidor fuera de servicio temporalmente'
                     });
                 } else {
-                    dispatch({
-                        type: MENSAJE_REGISTRAR,
-                        mensaje: 'Ocurrio un error'
-                    });
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 400:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Datos ingresados en formato incorrecto'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            if (respuesta.error === 'invalid_token') {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Token invalido'
+                                });
+                                break;
+                            } else {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Servidor fuera de servicio temporalmente'
+                                });
+                                break;
+                            }
+                    }
                 }
             });
 
@@ -261,6 +486,7 @@ export function actionAgregarExamen(examen) {
 
 export function actionAgregarExamenConsulta(examen) {
     const headers = {
+        'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
         'Content-Type': 'application/json'
     }
     return (dispatch, getState) => {
@@ -271,16 +497,47 @@ export function actionAgregarExamenConsulta(examen) {
                     mensaje: 'Examen agregado'
                 });
             }).catch((error) => {
-                if (error.request.status === 400) {
+                if (error.request.response === '') {
                     dispatch({
                         type: MENSAJE_REGISTRAR,
-                        mensaje: 'Datos ingresados en formato incorrecto'
+                        mensaje: 'Servidor fuera de servicio temporalmente'
                     });
                 } else {
-                    dispatch({
-                        type: MENSAJE_REGISTRAR,
-                        mensaje: 'Ocurrio un error'
-                    });
+                    var respuesta = JSON.parse(error.request.response);
+                    switch (respuesta.status) {
+                        case 401:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Sin permiso'
+                            });
+                            break;
+                        case 400:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Datos ingresados en formato incorrecto'
+                            });
+                            break;
+                        case 500:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Ocurrio un error'
+                            });
+                            break;
+                        default:
+                            if (respuesta.error === 'invalid_token') {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Token invalido'
+                                });
+                                break;
+                            } else {
+                                dispatch({
+                                    type: MENSAJE_REGISTRAR,
+                                    mensaje: 'Servidor fuera de servicio temporalmente'
+                                });
+                                break;
+                            }
+                    }
                 }
             });
 

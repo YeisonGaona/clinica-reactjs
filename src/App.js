@@ -14,6 +14,7 @@ import thunk from 'redux-thunk'
 import 'bootstrap/dist/css/bootstrap.min.css';
 // import ConsultaList from './componentes/ConsultaList.js';
 import ExamenList from './componentes/ExamenList.js';
+import Login from './componentes/General/Login.js'
 import MedicoList from './componentes/MedicoList.js';
 import NotFound from './componentes/Pagina 404.js';
 import ContenedorConsulta from './componentes/Contenedores/ContenedorConsulta.js';
@@ -27,12 +28,10 @@ class App extends React.Component {
         <Router>
           <Switch>
             <Route exact path="/">
-              <Menu children={
-                <>
-                {/* <ConsultaList/> */}
-                  <ContenedorConsulta />
-                </>
-              } />
+              <Login />
+            </Route>
+            <Route exact path="/consultas">
+              <Menu children={<ContenedorConsulta />} />
             </Route>
             <Route exact path="/examenes">
               <Menu children={<ExamenList />} />
