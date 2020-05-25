@@ -1,14 +1,14 @@
 import axios from 'axios';
 
 export const MENSAJE_REGISTRAR = 'MENSAJE_REGISTRAR';
-export const GET_EXAMEN= 'GET_EXAMEN';
+export const GET_EXAMEN = 'GET_EXAMEN';
 export const FILTRAR_EXAMEN = 'FILTRAR_EXAMEN';
 export const EXAMEN_REGISTRAR = 'EXAMEN_REGISTRAR';
-export const EXAMEN_RECUPERAR='EXAMEN_RECUPERAR';
-export const ACTUALIZAR_EXAMEN_REGISTRAR='ACTUALIZAR_EXAMEN_REGISTRAR';
-export const ASIGNAR_EXAMEN_REGISTRAR='ASIGNAR_EXAMEN_REGISTRAR';
-export const GET_EXAMEN_NO_ASOCIADOS='GET_EXAMEN_NO_ASOCIADOS';
-export const EXAMEN_EDITAR='EXAMEN_EDITAR';
+export const EXAMEN_RECUPERAR = 'EXAMEN_RECUPERAR';
+export const ACTUALIZAR_EXAMEN_REGISTRAR = 'ACTUALIZAR_EXAMEN_REGISTRAR';
+export const ASIGNAR_EXAMEN_REGISTRAR = 'ASIGNAR_EXAMEN_REGISTRAR';
+export const GET_EXAMEN_NO_ASOCIADOS = 'GET_EXAMEN_NO_ASOCIADOS';
+export const EXAMEN_EDITAR = 'EXAMEN_EDITAR';
 
 export function actionMensajeRegistrar(mensaje) {
     return (dispatch, getState) => {
@@ -41,7 +41,7 @@ export function actionFiltrarExamenPorNombre(nuevosExamenes) {
     return (dispatch, getState) => {
         dispatch({
             type: GET_EXAMEN,
-            respuesta:nuevosExamenes
+            respuesta: nuevosExamenes
         });
     }
 }
@@ -77,14 +77,14 @@ export function actualizarExamenRegistrar(examen) {
 }
 
 export function actionExamenRecuperar(examen) {
-    let examenTransformado={
-        'idExamen':examen.value,
-        'nombre':examen.label
+    let examenTransformado = {
+        'idExamen': examen.value,
+        'nombre': examen.label
     }
     return (dispatch, getState) => {
         dispatch({
             type: EXAMEN_RECUPERAR,
-            examen:examenTransformado
+            examen: examenTransformado
         });
     }
 }
@@ -96,7 +96,7 @@ export function actionGet() {
         'Content-Type': 'application/json'
     }
     return (dispatch, getState) => {
-        axios.get(`http://localhost:8081/examenes/listar`,{ headers: headers })
+        axios.get(`http://localhost:8081/examenes/listar`, { headers: headers })
             .then(response => {
                 dispatch({
                     type: GET_EXAMEN,
@@ -141,7 +141,7 @@ export function actionGetFormulario() {
         'Content-Type': 'application/json'
     }
     return (dispatch, getState) => {
-        axios.get(`http://localhost:8081/examenes/listarFormulario`,{ headers: headers })
+        axios.get(`http://localhost:8081/examenes/listarFormulario`, { headers: headers })
             .then(response => {
                 dispatch({
                     type: GET_EXAMEN,
@@ -245,9 +245,9 @@ export function actionGetExamenesNoAsociados(idConsulta) {
         'Content-Type': 'application/json'
     }
     return (dispatch, getState) => {
-        axios.get(`http://localhost:8081/examenes/listarNoAsociados/${idConsulta}`,{ headers: headers })
+        axios.get(`http://localhost:8081/examenes/listarNoAsociados/${idConsulta}`, { headers: headers })
             .then(response => {
-                console.log('respuesta',response.data)
+                console.log('respuesta', response.data)
                 dispatch({
                     type: GET_EXAMEN_NO_ASOCIADOS,
                     respuesta: response.data
@@ -306,7 +306,7 @@ export function actionGetExamenesNoAsociados(idConsulta) {
     };
 }
 
-export function actionEliminarExamenConsulta(idExamen,idConsulta) {
+export function actionEliminarExamenConsulta(idExamen, idConsulta) {
     const headers = {
         'Authorization': `bearer  ${sessionStorage.getItem('access-token')}`,
         'Content-Type': 'application/json'
@@ -392,6 +392,12 @@ export function actionEliminarExamen(idExamen) {
                                 mensaje: 'Sin permiso'
                             });
                             break;
+                        case 409:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Examen asociado'
+                            });
+                            break;
                         case 400:
                             dispatch({
                                 type: MENSAJE_REGISTRAR,
@@ -431,7 +437,7 @@ export function actionAgregarExamen(examen) {
     }
     return (dispatch, getState) => {
         axios.post(`http://localhost:8081/examenes/guardar`, examen, { headers: headers })
-            .then(response => { 
+            .then(response => {
                 dispatch({
                     type: MENSAJE_REGISTRAR,
                     mensaje: 'Examen registrado'
@@ -491,7 +497,7 @@ export function actionAgregarExamenConsulta(examen) {
     }
     return (dispatch, getState) => {
         axios.post(`http://localhost:8081/examenes/guardarExamenConsulta`, examen, { headers: headers })
-            .then(response => { 
+            .then(response => {
                 dispatch({
                     type: MENSAJE_REGISTRAR,
                     mensaje: 'Examen agregado'

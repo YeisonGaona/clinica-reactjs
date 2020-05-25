@@ -10,7 +10,7 @@ import Container from '@material-ui/core/Container';
 import Paper from '@material-ui/core/Paper';
 import Alert from '@material-ui/lab/Alert';
 
-import { actionLoginUsuario ,actualizarMensaje} from '../../actions/actionLogin.js';
+import { actionLoginUsuario, actualizarMensaje } from '../../actions/actionLogin.js';
 import { reduxForm, Field } from 'redux-form';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
@@ -31,11 +31,18 @@ class Login extends React.Component {
     }
 
     componentDidUpdate() {
-        const { mensaje ,actualizarMensaje}=this.props;
-        if(mensaje!==''){
+        const { mensaje, actualizarMensaje } = this.props;
+        if (mensaje !== '') {
             switch (mensaje) {
                 case 'Logeado':
-                    this.props.history.push('/medicos');
+                    var jwt = require('jsonwebtoken');
+                    var decoded = jwt.decode(sessionStorage.getItem('access-token'));
+                    let rol = decoded.authorities[0];
+                    if (rol === 'Medico') {
+                        this.props.history.push('/consultas');
+                    } else {
+                        this.props.history.push('/medicos');
+                    }
                     actualizarMensaje('');
                     break;
                 default:
@@ -66,7 +73,7 @@ class Login extends React.Component {
                     <form style={{ width: '100%' }} noValidate onSubmit={this.props.handleSubmit(this.handleSubmit)}>
                         <Field name="nickname" validate={[requerido]} component={generarInput} label="Nickname" />
                         <Field name="contrasena" validate={[requerido]} component={generarInput} type='password' label="Contraseña" />
-                        <Field name="mensaje" component={generarMensaje} type={this.state.severidad}  label={this.props.mensaje}   />
+                        <Field name="mensaje" component={generarMensaje} type={this.state.severidad} label={this.props.mensaje} />
                         <Button
                             type="submit"
                             fullWidth
@@ -86,7 +93,7 @@ const generarMensaje = ({ input, label, type, meta: { touched, error, warning } 
     <div>
         <div>
             <br />
-            {label === undefined | label === '' ? <div></div> : <Alert draggable={true} style={{fontSize:'13px'}} severity={type}>{label}</Alert>}
+            {label === undefined | label === '' ? <div></div> : <Alert draggable={true} style={{ fontSize: '13px' }} severity={type}>{label}</Alert>}
             <br />
         </div>
     </div>
@@ -105,4 +112,4 @@ let formulario = reduxForm({
     form: 'iniciarSesion'
 })(Login)
 
-export default withRouter(connect(mapStateToProps, { actionLoginUsuario,actualizarMensaje })(formulario));
+export default withRouter(connect(mapStateToProps, { actionLoginUsuario, actualizarMensaje })(formulario));

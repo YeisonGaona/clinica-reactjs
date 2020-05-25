@@ -184,6 +184,12 @@ export function actionEliminarMedico(idMedico) {
                                 mensaje: 'Sin permiso'
                             });
                             break;
+                        case 409:
+                            dispatch({
+                                type: MENSAJE_REGISTRAR,
+                                mensaje: 'Medico asociado'
+                            });
+                            break;
                         case 400:
                             dispatch({
                                 type: MENSAJE_REGISTRAR,
